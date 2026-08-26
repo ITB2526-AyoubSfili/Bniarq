@@ -1,58 +1,59 @@
-/* Custom CSS para Bniarq - Executive Edition */
+/* Custom CSS Bniarq B2B - v4.0 */
 
-html {
-    scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
+body { background-color: #050505; }
 
-body {
-    background-color: #050505; /* Un negro más profundo y elegante */
-}
+/* Scrollbar B2B */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #050505; }
+::-webkit-scrollbar-thumb { background: #333333; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
 
-/* --- ESTILO DE SCROLLBAR LIMPIO --- */
-::-webkit-scrollbar {
-    width: 6px;
-}
-::-webkit-scrollbar-track {
-    background: #050505;
-}
-::-webkit-scrollbar-thumb {
-    background: #333333;
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: #3B82F6;
-}
-
-/* --- ANIMACIONES DE SCROLL (REVEAL) --- */
+/* Animaciones de aparición (Scroll) */
 .reveal {
     opacity: 0;
-    transform: translateY(40px);
-    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    transform: translateY(30px);
+    transition: all 0.7s cubic-bezier(0.5, 0, 0, 1);
 }
-
 .reveal.active {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* --- ANIMACIÓN DE CARGA PARA EL BOTÓN --- */
+/* Blur de la cabecera */
+.navbar-scrolled {
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+    background-color: rgba(5, 5, 5, 0.95);
+}
+
+/* Loader Circular */
 .loading-spinner {
-    border: 3px solid rgba(0,0,0,0.1);
-    border-left-color: #000;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-left-color: #ffffff; 
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
     animation: spin 1s linear infinite;
     display: inline-block;
 }
-
+.loading-spinner.black-border {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #000000;
+}
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Efecto de desenfoque al hacer scroll en el menú */
-.navbar-scrolled {
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-    background-color: rgba(5, 5, 5, 0.85);
+/* Transición del Modal */
+.modal-show {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+}
+
+/* Animación de los resultados de búsqueda */
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
 }

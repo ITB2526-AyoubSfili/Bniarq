@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bniarq — Infraestructura de colaboración y financiación B2B</title>
+    <title>Bniarq — Infraestructura B2B de Arquitectura y Construcción</title>
     
-    <!-- Tailwind CSS (CDN para prototipado rápido) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: Inter para máxima legibilidad corporativa -->
+    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
@@ -34,201 +34,271 @@
         }
     </script>
     
-    <!-- Enlace a tu CSS personalizado -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-brand-dark text-white font-sans antialiased selection:bg-blue-500 selection:text-white">
+<body class="bg-brand-dark text-white font-sans antialiased selection:bg-blue-500 selection:text-white relative">
 
-    <!-- NAVEGACIÓN -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-brand-dark/70 backdrop-blur-xl border-b border-brand-border transition-all duration-300" id="navbar">
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-brand-dark/90 backdrop-blur-xl border-b border-brand-border transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <span class="text-2xl font-bold tracking-tighter text-white">bniarq<span class="text-blue-500">.</span></span>
-                <span class="hidden sm:flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 uppercase tracking-widest font-semibold">
+                <span class="hidden sm:flex items-center gap-1.5 text-[10px] px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 uppercase tracking-widest font-semibold">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    Demo Ejecutiva
+                    Versión B2B Funcional
                 </span>
             </div>
             <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
-                <a href="#problema" class="hover:text-white transition">El Reto</a>
-                <a href="#simulador" class="text-white hover:text-blue-400 transition">Simulador B2B</a>
-                <a href="#diferencial" class="hover:text-white transition">Grafo de Confianza</a>
+                <a href="#simulador" class="text-white hover:text-blue-400 transition">Simulador del Ecosistema</a>
             </nav>
             <div>
-                <a href="#registro" class="bg-white text-black text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-200 transition shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                    Solicitar Dossier
+                <a href="#registro" class="bg-white text-black text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-200 transition shadow-lg">
+                    Descargar Dossier
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- HERO SECTION (Impacto visual inicial) -->
-    <section class="relative pt-40 pb-24 md:pt-56 md:pb-40 overflow-hidden">
-        <!-- Efectos de fondo sutiles -->
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.15),rgba(255,255,255,0))]"></div>
-        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-border to-transparent"></div>
-        
+    <!-- HERO SECTION -->
+    <section class="relative pt-40 pb-20 md:pt-48 md:pb-24 overflow-hidden border-b border-brand-border">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.12),rgba(255,255,255,0))]"></div>
         <div class="max-w-5xl mx-auto px-6 relative z-10 text-center reveal">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-card border border-brand-border text-xs text-brand-muted mb-8 shadow-xl">
-                <i data-lucide="building-2" class="w-4 h-4 text-blue-500"></i>
-                Ecosistema para Estudios, Ingenierías y Constructoras
-            </div>
-            
-            <h1 class="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-8 leading-[1.05]">
-                El talento que necesitas. <br class="hidden sm:inline">
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-600">La financiación que ejecuta.</span>
+            <h1 class="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.05]">
+                Diseña con los mejores. <br class="hidden sm:inline">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-600">Financia y construye con seguridad.</span>
             </h1>
+            <p class="text-lg text-brand-muted max-w-3xl mx-auto font-light leading-relaxed">
+                El motor de conexión B2B que permite a estudios de arquitectura y grandes constructoras verificar perfiles, cerrar alianzas estratégicas y viabilizar proyectos inmobiliarios complejos.
+            </p>
+        </div>
+    </section>
+
+    <!-- SIMULADOR INTERACTIVO (BÚSQUEDA + RESULTADOS) -->
+    <section id="simulador" class="py-16 bg-brand-card/30">
+        <div class="max-w-6xl mx-auto px-6 reveal">
             
-            <p class="text-lg md:text-xl text-brand-muted max-w-2xl mx-auto mb-12 font-light leading-relaxed">
-                Bniarq es la infraestructura privada donde los grandes estudios de arquitectura encuentran socios técnicos certificados y constructoras dispuestas a financiar proyectos complejos.
-            </p>
-
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-                <a href="#simulador" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-medium px-8 py-4 rounded-full transition text-center shadow-[0_0_20px_rgba(59,130,246,0.4)]">
-                    Abrir Simulador B2B
-                </a>
+            <!-- Selector de Rol -->
+            <div class="flex justify-center p-1 bg-brand-dark border border-brand-border rounded-full max-w-md mx-auto shadow-lg mb-12">
+                <button onclick="switchTab('estudios')" id="btn-estudios" class="flex-1 py-3 px-6 rounded-full text-sm font-semibold bg-white text-black transition-all duration-300">Soy Estudio de Arquitectura</button>
+                <button onclick="switchTab('constructoras')" id="btn-constructoras" class="flex-1 py-3 px-6 rounded-full text-sm font-semibold text-brand-muted hover:text-white transition-all duration-300">Soy Constructora / Fondo</button>
             </div>
-        </div>
-    </section>
 
-    <!-- SIMULADOR INTERACTIVO -->
-    <section id="simulador" class="py-24 bg-brand-card/50 border-y border-brand-border relative">
-        <div class="max-w-7xl mx-auto px-6 reveal">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-xs uppercase tracking-widest text-blue-500 font-semibold mb-3">Demostración en Vivo</h2>
-                <h3 class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-6">Elige el perfil de tu empresa</h3>
+            <div class="relative min-h-[600px]">
                 
-                <!-- Pestañas Customizadas -->
-                <div class="flex justify-center p-1 bg-brand-dark border border-brand-border rounded-full max-w-md mx-auto shadow-lg relative">
-                    <button onclick="switchTab('estudios')" id="btn-estudios" class="flex-1 py-2.5 px-6 rounded-full text-sm font-semibold bg-white text-black transition-all duration-300">Estudio de Arquitectura</button>
-                    <button onclick="switchTab('constructoras')" id="btn-constructoras" class="flex-1 py-2.5 px-6 rounded-full text-sm font-semibold text-brand-muted hover:text-white transition-all duration-300">Constructora / Fondo</button>
-                </div>
-            </div>
-
-            <div class="relative min-h-[400px]">
-                <!-- VISTA: ESTUDIOS -->
-                <div id="view-estudios" class="absolute inset-0 transition-opacity duration-500 opacity-100 z-10 grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
-                    <div class="space-y-6">
-                        <div class="inline-block px-3 py-1 rounded bg-blue-500/10 text-blue-400 text-xs font-semibold border border-blue-500/20">Caso: Necesidad Técnica Urgente</div>
-                        <h4 class="text-2xl font-bold text-white leading-snug">Buscas especialización para no rechazar un proyecto</h4>
-                        <p class="text-brand-muted text-sm leading-relaxed">
-                            Has ganado un concurso de 80 viviendas, pero tu equipo no tiene capacidad para calcular la estructura en Revit a tiempo. En lugar de preguntar a contactos al azar, Bniarq busca en su ecosistema verificado.
-                        </p>
-                        <ul class="space-y-4 text-sm text-brand-muted mt-6">
-                            <li class="flex items-start gap-3"><i data-lucide="zap" class="w-5 h-5 text-blue-500 shrink-0"></i> <span>Matching instantáneo por software (BIM/Revit).</span></li>
-                            <li class="flex items-start gap-3"><i data-lucide="shield-check" class="w-5 h-5 text-blue-500 shrink-0"></i> <span>Historial verificado de UTEs exitosas previas.</span></li>
-                        </ul>
-                    </div>
-                    
-                    <!-- UI Simulada -->
-                    <div class="bg-brand-dark p-6 rounded-2xl border border-brand-border shadow-2xl relative overflow-hidden group hover:border-blue-500/50 transition duration-500">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
-                        <div class="flex justify-between items-start mb-6">
+                <!-- VISTA 1: SOY ESTUDIO -->
+                <div id="view-estudios" class="transition-all duration-500">
+                    <div class="bg-brand-dark p-6 md:p-8 rounded-2xl border border-brand-border shadow-2xl mb-8">
+                        <h4 class="text-white font-bold mb-6 flex items-center gap-2 text-lg">
+                            <i data-lucide="building" class="w-5 h-5 text-blue-500"></i> Buscar Constructoras y Partners Financieros
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                             <div>
-                                <div class="text-xs uppercase tracking-widest text-brand-muted mb-1">Mejor Coincidencia (94%)</div>
-                                <h5 class="text-lg font-bold text-white">ARQ-Structures Lab</h5>
-                                <p class="text-xs text-brand-muted">Ingeniería Estructural · Valencia</p>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Tipo de Proyecto</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
+                                    <option>Residencial Múltiple</option>
+                                    <option>Hotelero / Resort</option>
+                                    <option>Edificio Corporativo</option>
+                                </select>
                             </div>
-                            <div class="w-12 h-12 rounded-full bg-brand-card border border-brand-border flex items-center justify-center font-bold text-blue-400">94%</div>
+                            <div>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Ubicación</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
+                                    <option>Madrid / Centro</option>
+                                    <option>Barcelona / Cataluña</option>
+                                    <option>Valencia / Levante</option>
+                                    <option>Andalucía</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Presupuesto (PEM)</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
+                                    <option>Menos de 5M€</option>
+                                    <option>5M€ - 15M€</option>
+                                    <option>Más de 15M€</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Sostenibilidad Requerida</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
+                                    <option>Estándar (CTE)</option>
+                                    <option>Certificación LEED / BREEAM</option>
+                                    <option>Estándar Passivhaus</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="space-y-3 p-4 bg-brand-card rounded-xl border border-brand-border text-xs mb-6">
-                            <div class="flex justify-between"><span class="text-brand-muted">Proyectos similares:</span><span class="text-white font-medium">12 completados</span></div>
-                            <div class="flex justify-between"><span class="text-brand-muted">Cumplimiento plazos:</span><span class="text-emerald-400 font-medium">98.5% (Verificado)</span></div>
-                            <div class="flex justify-between"><span class="text-brand-muted">Disponibilidad:</span><span class="text-blue-400 font-medium">Inmediata</span></div>
+                        <div class="mt-8 flex justify-end">
+                            <button id="btn-search-estudios" onclick="runSearch('estudios')" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-8 rounded-lg transition text-sm flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                                <i data-lucide="search" class="w-4 h-4"></i> Ejecutar Búsqueda en Bniarq
+                            </button>
                         </div>
-                        <button class="w-full bg-white text-black font-semibold py-3 rounded-lg hover:bg-gray-200 transition text-sm flex justify-center items-center gap-2">
-                            <i data-lucide="handshake" class="w-4 h-4"></i> Proponer Colaboración
-                        </button>
                     </div>
+                    <!-- Contenedor dinámico de resultados (Estudios) -->
+                    <div id="results-estudios" class="hidden space-y-5"></div>
                 </div>
 
-                <!-- VISTA: CONSTRUCTORAS -->
-                <div id="view-constructoras" class="absolute inset-0 transition-opacity duration-500 opacity-0 pointer-events-none z-0 grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
-                    <div class="space-y-6">
-                        <div class="inline-block px-3 py-1 rounded bg-amber-500/10 text-amber-400 text-xs font-semibold border border-amber-500/20">Caso: Viabilidad y Financiación</div>
-                        <h4 class="text-2xl font-bold text-white leading-snug">El proyecto está diseñado, pero falta músculo financiero</h4>
-                        <p class="text-brand-muted text-sm leading-relaxed">
-                            El cliente tiene el terreno y el estudio ha hecho el diseño, pero la obra no arranca por liquidez. Bniarq introduce al ecosistema constructoras dispuestas a estructurar la financiación a cambio de la ejecución.
-                        </p>
-                        <ul class="space-y-4 text-sm text-brand-muted mt-6">
-                            <li class="flex items-start gap-3"><i data-lucide="briefcase" class="w-5 h-5 text-amber-500 shrink-0"></i> <span>Alianzas estratégicas modelo 'Llave en mano'.</span></li>
-                            <li class="flex items-start gap-3"><i data-lucide="trending-up" class="w-5 h-5 text-amber-500 shrink-0"></i> <span>Desbloqueo de proyectos paralizados.</span></li>
-                        </ul>
-                    </div>
-                    
-                    <!-- UI Simulada -->
-                    <div class="bg-brand-dark p-6 rounded-2xl border border-brand-border shadow-2xl relative overflow-hidden group hover:border-amber-500/50 transition duration-500">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full"></div>
-                        <div class="flex justify-between items-start mb-6">
+                <!-- VISTA 2: SOY CONSTRUCTORA -->
+                <div id="view-constructoras" class="hidden transition-all duration-500">
+                    <div class="bg-brand-dark p-6 md:p-8 rounded-2xl border border-brand-border shadow-2xl mb-8">
+                        <h4 class="text-white font-bold mb-6 flex items-center gap-2 text-lg">
+                            <i data-lucide="hard-hat" class="w-5 h-5 text-amber-500"></i> Buscar Proyectos Validados ("Shovel-Ready")
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                             <div>
-                                <div class="text-xs uppercase tracking-widest text-brand-muted mb-1">Partner Financiero Ideal</div>
-                                <h5 class="text-lg font-bold text-white">BuildGroup Capital S.A.</h5>
-                                <p class="text-xs text-brand-muted">Constructora & Investment Fund · Madrid</p>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Tipología de Obra</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
+                                    <option>Residencial de Lujo</option>
+                                    <option>Logística / Industrial</option>
+                                    <option>Dotacional (Sanidad/Educación)</option>
+                                </select>
                             </div>
-                            <div class="w-12 h-12 rounded-full bg-brand-card border border-brand-border flex items-center justify-center"><i data-lucide="building" class="w-5 h-5 text-amber-500"></i></div>
+                            <div>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Estado de Licencias</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
+                                    <option>Licencia Concedida (Inmediato)</option>
+                                    <option>Proyecto Básico Terminado</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Entorno Tecnológico</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
+                                    <option>Revit / Metodología BIM 100%</option>
+                                    <option>CAD / Modelado Tradicional</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Capacidad de Inversión</label>
+                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
+                                    <option>Hasta 10 Millones €</option>
+                                    <option>De 10 a 30 Millones €</option>
+                                    <option>Proyectos Gran Escala (+30M€)</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="space-y-3 p-4 bg-brand-card rounded-xl border border-brand-border text-xs mb-6">
-                            <div class="flex justify-between"><span class="text-brand-muted">Capacidad co-inversión:</span><span class="text-white font-medium">Hasta 15M€</span></div>
-                            <div class="flex justify-between"><span class="text-brand-muted">Tipología preferida:</span><span class="text-amber-400 font-medium">Hotelero / Residencial</span></div>
-                            <div class="flex justify-between"><span class="text-brand-muted">Fase de entrada:</span><span class="text-white font-medium">Proyecto Básico Avanzado</span></div>
+                        <div class="mt-8 flex justify-end">
+                            <button id="btn-search-constructoras" onclick="runSearch('constructoras')" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 px-8 rounded-lg transition text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20">
+                                <i data-lucide="search" class="w-4 h-4"></i> Buscar Oportunidades de Obra
+                            </button>
                         </div>
-                        <button class="w-full bg-amber-500 text-black font-semibold py-3 rounded-lg hover:bg-amber-400 transition text-sm flex justify-center items-center gap-2">
-                            <i data-lucide="file-signature" class="w-4 h-4"></i> Enviar a Comité de Inversión
-                        </button>
                     </div>
+                    <!-- Contenedor dinámico de resultados (Constructoras) -->
+                    <div id="results-constructoras" class="hidden space-y-5"></div>
                 </div>
+
             </div>
         </div>
     </section>
 
-    <!-- FORMULARIO DIRECTIVO -->
-    <section id="registro" class="py-32 relative overflow-hidden">
-        <div class="absolute inset-0 bg-brand-card/30"></div>
+    <!-- FORMULARIO DIRECTIVO (Descarga de Dossier) -->
+    <section id="registro" class="py-24 border-t border-brand-border relative overflow-hidden">
+        <div class="absolute inset-0 bg-brand-card/20"></div>
         <div class="max-w-2xl mx-auto px-6 text-center relative z-10 reveal">
-            <h2 class="text-3xl md:text-5xl font-bold tracking-tight text-white mb-6">Presenta Bniarq en tu próximo comité</h2>
-            <p class="text-brand-muted text-sm sm:text-base mb-10">
-                Descarga nuestro dossier ejecutivo diseñado para Dirección y Consejos de Administración. Incluye modelo de monetización, análisis de mercado y mapa de integración B2B.
-            </p>
-
-            <form id="dossierForm" class="bg-brand-dark p-8 md:p-10 rounded-3xl border border-brand-border text-left shadow-2xl relative overflow-hidden">
+            <h2 class="text-3xl font-bold mb-4">Descarga el Dossier Ejecutivo</h2>
+            <p class="text-brand-muted text-sm mb-8 max-w-lg mx-auto">Solicita el documento confidencial con nuestro modelo de negocio, análisis de rentabilidad y proyecciones B2B para presentar a dirección.</p>
+            
+            <form id="dossierForm" class="bg-brand-dark p-8 rounded-3xl border border-brand-border text-left shadow-2xl relative">
                 <div id="formContent" class="space-y-5 transition-opacity duration-300">
                     <div>
-                        <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Nombre y Cargo</label>
-                        <input type="text" id="userName" required placeholder="Ej. Carlos G. - CEO" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                        <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Nombre Completo y Cargo</label>
+                        <input type="text" id="userName" required placeholder="Ej. Javier García - Director General" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:border-blue-500 outline-none transition">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Email Corporativo</label>
-                        <input type="email" id="userEmail" required placeholder="direccion@tuempresa.com" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                        <input type="email" id="userEmail" required placeholder="direccion@tuempresa.com" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:border-blue-500 outline-none transition">
                     </div>
-                    <button type="submit" id="submitBtn" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition text-sm flex justify-center items-center gap-2 mt-4">
-                        <span>Descargar Dossier Estratégico</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <button type="submit" id="btnSubmitDossier" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition text-sm flex justify-center items-center gap-2 mt-4">
+                        Descargar Documento Confidencial
                     </button>
                 </div>
 
-                <!-- Mensaje de Éxito (Oculto por defecto) -->
-                <div id="successMessage" class="absolute inset-0 bg-brand-dark flex flex-col items-center justify-center text-center p-8 opacity-0 pointer-events-none transition-opacity duration-500">
+                <!-- Mensaje de éxito del Dossier -->
+                <div id="dossierSuccess" class="absolute inset-0 bg-brand-dark flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 rounded-3xl z-20">
                     <div class="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
                         <i data-lucide="check-circle" class="w-8 h-8"></i>
                     </div>
                     <h4 class="text-xl font-bold text-white mb-2">¡Dossier preparado!</h4>
-                    <p class="text-sm text-brand-muted">Enviando el documento confidencial a tu correo corporativo en breve.</p>
+                    <p class="text-sm text-brand-muted text-center px-6">El documento B2B está siendo enviado de forma segura a tu correo corporativo.</p>
                 </div>
             </form>
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="border-t border-brand-border py-12 bg-brand-dark">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-brand-muted">
-            <div class="flex items-center gap-2 font-bold text-white tracking-tight">
-                bniarq<span class="text-blue-500">.</span>
+    <!-- ========================================== -->
+    <!-- MODAL B2B: FORMULARIO DE PROPUESTA/NDA     -->
+    <!-- ========================================== -->
+    <div id="proposalModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+        <!-- Fondo oscuro -->
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <!-- Ventana del Modal -->
+        <div class="bg-[#0a0a0a] border border-brand-border w-full max-w-2xl mx-4 rounded-2xl shadow-2xl relative z-[101] transform scale-95 opacity-0 transition-all duration-300 flex flex-col overflow-hidden" id="modalWindow">
+            
+            <div class="border-b border-brand-border p-6 bg-brand-card/50 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest text-brand-muted flex items-center gap-2 mb-1">
+                        <i data-lucide="shield-check" class="w-3 h-3 text-emerald-500"></i> Entorno Protegido
+                    </span>
+                    <h3 class="text-xl font-bold text-white">Solicitud de alianza para <span id="modalTargetName" class="text-blue-400"></span></h3>
+                </div>
+                <button type="button" onclick="closeModal()" class="text-brand-muted hover:text-white transition bg-brand-dark p-2 rounded-full border border-brand-border">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
-            <span>&copy; 2026 Bniarq Ecosistema B2B. Documento Confidencial.</span>
-        </div>
-    </footer>
 
-    <!-- Enlace a tu JS personalizado -->
+            <!-- Formulario de contacto B2B -->
+            <form id="b2bForm" class="p-6 md:p-8 space-y-5">
+                <div id="proposalFormContent">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Código Interno del Proyecto</label>
+                            <input type="text" required placeholder="Ej. PRJ-Marina-2026" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Fecha límite de respuesta</label>
+                            <input type="date" required class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none transition [color-scheme:dark]">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5">
+                        <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Resumen Ejecutivo de la Petición</label>
+                        <textarea required rows="4" placeholder="Justifica brevemente por qué solicitas la apertura de la sala de trabajo virtual (Data Room)..." class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none transition resize-none"></textarea>
+                    </div>
+
+                    <div class="mt-5 bg-brand-card border border-brand-border rounded-xl p-4 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-brand-dark p-3 rounded-lg border border-brand-border">
+                                <i data-lucide="file-key" class="w-5 h-5 text-brand-muted"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-white">Firma de NDA requerida</p>
+                                <p class="text-xs text-brand-muted">Acuerdo de confidencialidad mutuo.</p>
+                            </div>
+                        </div>
+                        <div class="hidden sm:block text-[10px] text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 font-bold uppercase tracking-wider">Smart Contract</div>
+                    </div>
+
+                    <div class="mt-8">
+                        <button type="submit" id="btnSubmitProposal" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition text-sm flex justify-center items-center gap-2">
+                            Firmar y Enviar Petición Oficial
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mensaje de éxito del Modal -->
+                <div id="proposalSuccess" class="hidden flex-col items-center justify-center text-center py-10 opacity-0 transition-opacity duration-500 z-20">
+                    <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                        <i data-lucide="check" class="w-10 h-10"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-white mb-3">Petición Registrada</h4>
+                    <p class="text-sm text-brand-muted max-w-sm mx-auto leading-relaxed">
+                        Se ha notificado al consejo de la empresa. En cuanto acepten el acuerdo de confidencialidad, se habilitará la sala de trabajo compartida.
+                    </p>
+                    <button type="button" onclick="closeModal()" class="mt-8 bg-brand-card border border-brand-border hover:border-gray-500 text-white px-8 py-3 rounded-full text-sm font-semibold transition">Finalizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="script.js"></script>
 </body>
 </html>

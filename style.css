@@ -1,0 +1,58 @@
+/* Custom CSS para Bniarq - Executive Edition */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: #050505; /* Un negro más profundo y elegante */
+}
+
+/* --- ESTILO DE SCROLLBAR LIMPIO --- */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #050505;
+}
+::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #3B82F6;
+}
+
+/* --- ANIMACIONES DE SCROLL (REVEAL) --- */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- ANIMACIÓN DE CARGA PARA EL BOTÓN --- */
+.loading-spinner {
+    border: 3px solid rgba(0,0,0,0.1);
+    border-left-color: #000;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Efecto de desenfoque al hacer scroll en el menú */
+.navbar-scrolled {
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    background-color: rgba(5, 5, 5, 0.85);
+}

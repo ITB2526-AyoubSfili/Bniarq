@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bniarq — Infraestructura B2B de Arquitectura y Construcción</title>
+    <title>Bniarq — La Infraestructura Digital del Sector Constructor</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Configuración Tailwind Integrada -->
+    <!-- Configuración Tailwind -->
     <script>
         tailwind.config = {
             theme: {
@@ -22,11 +22,11 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         brand: {
-                            dark: '#050505',
-                            card: '#111111',
-                            border: '#222222',
-                            muted: '#888888',
-                            accent: '#3B82F6',
+                            dark: '#030303',
+                            card: '#0c0c0c',
+                            border: '#1f1f1f',
+                            muted: '#737373',
+                            accent: '#2563EB',
                         }
                     }
                 }
@@ -36,267 +36,390 @@
     
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-brand-dark text-white font-sans antialiased selection:bg-blue-500 selection:text-white relative">
+<body class="bg-brand-dark text-white font-sans antialiased selection:bg-blue-500 selection:text-white">
 
-    <!-- HEADER -->
-    <header class="fixed top-0 left-0 right-0 z-40 bg-brand-dark/90 backdrop-blur-xl border-b border-brand-border transition-all duration-300" id="navbar">
+    <!-- NAVEGACIÓN -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-brand-dark/80 backdrop-blur-xl border-b border-brand-border transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <span class="text-2xl font-bold tracking-tighter text-white">bniarq<span class="text-blue-500">.</span></span>
-                <span class="hidden sm:flex items-center gap-1.5 text-[10px] px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 uppercase tracking-widest font-semibold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    Versión B2B Funcional
-                </span>
+                <span class="text-2xl font-black tracking-tighter text-white">bniarq<span class="text-blue-600">.</span></span>
             </div>
             <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
-                <a href="#simulador" class="text-white hover:text-blue-400 transition">Simulador del Ecosistema</a>
+                <a href="#solucion" class="hover:text-white transition">Plataforma</a>
+                <a href="#modulos" class="hover:text-white transition">Soluciones B2B</a>
+                <a href="#metricas" class="hover:text-white transition">Impacto</a>
+                <a href="#precios" class="hover:text-white transition">Pricing</a>
             </nav>
             <div>
-                <a href="#registro" class="bg-white text-black text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-200 transition shadow-lg">
-                    Descargar Dossier
+                <a href="#contacto" class="bg-white text-black text-sm font-bold px-6 py-2.5 rounded-full hover:bg-gray-200 transition shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_25px_rgba(255,255,255,0.3)]">
+                    Solicitar Demo
                 </a>
             </div>
         </div>
     </header>
 
     <!-- HERO SECTION -->
-    <section class="relative pt-40 pb-20 md:pt-48 md:pb-24 overflow-hidden border-b border-brand-border">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.12),rgba(255,255,255,0))]"></div>
-        <div class="max-w-5xl mx-auto px-6 relative z-10 text-center reveal">
-            <h1 class="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.05]">
-                Diseña con los mejores. <br class="hidden sm:inline">
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-600">Financia y construye con seguridad.</span>
+    <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden border-b border-brand-border min-h-[90vh] flex flex-col justify-center">
+        <div class="absolute inset-0 z-0">
+            <!-- Foto de Unsplash de alta calidad -->
+            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop" alt="Arquitectura moderna" class="w-full h-full object-cover opacity-20 filter grayscale">
+            <div class="absolute inset-0 bg-gradient-to-b from-brand-dark/10 via-brand-dark/90 to-brand-dark"></div>
+        </div>
+        
+        <div class="max-w-6xl mx-auto px-6 relative z-10 text-center reveal">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/20 border border-blue-500/30 text-xs text-blue-400 font-bold mb-8 uppercase tracking-widest backdrop-blur-sm">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                El estándar de colaboración en construcción
+            </div>
+            
+            <h1 class="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter text-white mb-6 leading-[1.05]">
+                Orquesta proyectos. <br class="hidden sm:inline">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-gray-300 to-white">Escala tu impacto.</span>
             </h1>
-            <p class="text-lg text-brand-muted max-w-3xl mx-auto font-light leading-relaxed">
-                El motor de conexión B2B que permite a estudios de arquitectura y grandes constructoras verificar perfiles, cerrar alianzas estratégicas y viabilizar proyectos inmobiliarios complejos.
+            
+            <p class="text-lg md:text-2xl text-brand-muted max-w-3xl mx-auto font-light leading-relaxed mb-12">
+                Bniarq centraliza la creación de equipos, la verificación de socios técnicos y la inyección de liquidez. Conectamos los mejores diseños con el capital y la fuerza ejecutora.
             </p>
-        </div>
-    </section>
 
-    <!-- SIMULADOR INTERACTIVO (BÚSQUEDA + RESULTADOS) -->
-    <section id="simulador" class="py-16 bg-brand-card/30">
-        <div class="max-w-6xl mx-auto px-6 reveal">
-            
-            <!-- Selector de Rol -->
-            <div class="flex justify-center p-1 bg-brand-dark border border-brand-border rounded-full max-w-md mx-auto shadow-lg mb-12">
-                <button onclick="switchTab('estudios')" id="btn-estudios" class="flex-1 py-3 px-6 rounded-full text-sm font-semibold bg-white text-black transition-all duration-300">Soy Estudio de Arquitectura</button>
-                <button onclick="switchTab('constructoras')" id="btn-constructoras" class="flex-1 py-3 px-6 rounded-full text-sm font-semibold text-brand-muted hover:text-white transition-all duration-300">Soy Constructora / Fondo</button>
-            </div>
-
-            <div class="relative min-h-[600px]">
-                
-                <!-- VISTA 1: SOY ESTUDIO -->
-                <div id="view-estudios" class="transition-all duration-500">
-                    <div class="bg-brand-dark p-6 md:p-8 rounded-2xl border border-brand-border shadow-2xl mb-8">
-                        <h4 class="text-white font-bold mb-6 flex items-center gap-2 text-lg">
-                            <i data-lucide="building" class="w-5 h-5 text-blue-500"></i> Buscar Constructoras y Partners Financieros
-                        </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Tipo de Proyecto</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
-                                    <option>Residencial Múltiple</option>
-                                    <option>Hotelero / Resort</option>
-                                    <option>Edificio Corporativo</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Ubicación</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
-                                    <option>Madrid / Centro</option>
-                                    <option>Barcelona / Cataluña</option>
-                                    <option>Valencia / Levante</option>
-                                    <option>Andalucía</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Presupuesto (PEM)</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
-                                    <option>Menos de 5M€</option>
-                                    <option>5M€ - 15M€</option>
-                                    <option>Más de 15M€</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Sostenibilidad Requerida</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-blue-500 transition">
-                                    <option>Estándar (CTE)</option>
-                                    <option>Certificación LEED / BREEAM</option>
-                                    <option>Estándar Passivhaus</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-8 flex justify-end">
-                            <button id="btn-search-estudios" onclick="runSearch('estudios')" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-8 rounded-lg transition text-sm flex items-center gap-2 shadow-lg shadow-blue-500/20">
-                                <i data-lucide="search" class="w-4 h-4"></i> Ejecutar Búsqueda en Bniarq
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Contenedor dinámico de resultados (Estudios) -->
-                    <div id="results-estudios" class="hidden space-y-5"></div>
-                </div>
-
-                <!-- VISTA 2: SOY CONSTRUCTORA -->
-                <div id="view-constructoras" class="hidden transition-all duration-500">
-                    <div class="bg-brand-dark p-6 md:p-8 rounded-2xl border border-brand-border shadow-2xl mb-8">
-                        <h4 class="text-white font-bold mb-6 flex items-center gap-2 text-lg">
-                            <i data-lucide="hard-hat" class="w-5 h-5 text-amber-500"></i> Buscar Proyectos Validados ("Shovel-Ready")
-                        </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Tipología de Obra</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
-                                    <option>Residencial de Lujo</option>
-                                    <option>Logística / Industrial</option>
-                                    <option>Dotacional (Sanidad/Educación)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Estado de Licencias</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
-                                    <option>Licencia Concedida (Inmediato)</option>
-                                    <option>Proyecto Básico Terminado</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Entorno Tecnológico</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
-                                    <option>Revit / Metodología BIM 100%</option>
-                                    <option>CAD / Modelado Tradicional</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Capacidad de Inversión</label>
-                                <select class="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-amber-500 transition">
-                                    <option>Hasta 10 Millones €</option>
-                                    <option>De 10 a 30 Millones €</option>
-                                    <option>Proyectos Gran Escala (+30M€)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-8 flex justify-end">
-                            <button id="btn-search-constructoras" onclick="runSearch('constructoras')" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 px-8 rounded-lg transition text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20">
-                                <i data-lucide="search" class="w-4 h-4"></i> Buscar Oportunidades de Obra
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Contenedor dinámico de resultados (Constructoras) -->
-                    <div id="results-constructoras" class="hidden space-y-5"></div>
-                </div>
-
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#contacto" class="bg-blue-600 text-white text-base font-bold px-8 py-4 rounded-full hover:bg-blue-500 transition shadow-[0_0_30px_rgba(37,99,235,0.4)]">
+                    Descargar Dossier Ejecutivo
+                </a>
+                <a href="#modulos" class="bg-brand-card border border-brand-border text-white text-base font-bold px-8 py-4 rounded-full hover:bg-brand-border transition flex items-center justify-center gap-2">
+                    <i data-lucide="play-circle" class="w-5 h-5"></i> Ver cómo funciona
+                </a>
             </div>
         </div>
     </section>
 
-    <!-- FORMULARIO DIRECTIVO (Descarga de Dossier) -->
-    <section id="registro" class="py-24 border-t border-brand-border relative overflow-hidden">
-        <div class="absolute inset-0 bg-brand-card/20"></div>
-        <div class="max-w-2xl mx-auto px-6 text-center relative z-10 reveal">
-            <h2 class="text-3xl font-bold mb-4">Descarga el Dossier Ejecutivo</h2>
-            <p class="text-brand-muted text-sm mb-8 max-w-lg mx-auto">Solicita el documento confidencial con nuestro modelo de negocio, análisis de rentabilidad y proyecciones B2B para presentar a dirección.</p>
-            
-            <form id="dossierForm" class="bg-brand-dark p-8 rounded-3xl border border-brand-border text-left shadow-2xl relative">
-                <div id="formContent" class="space-y-5 transition-opacity duration-300">
-                    <div>
-                        <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Nombre Completo y Cargo</label>
-                        <input type="text" id="userName" required placeholder="Ej. Javier García - Director General" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:border-blue-500 outline-none transition">
+    <!-- TRUSTED BY (LOGOS FALSOS / PARTNERS) -->
+    <section class="py-10 border-b border-brand-border bg-brand-card/30">
+        <div class="max-w-7xl mx-auto px-6 text-center reveal">
+            <p class="text-[10px] uppercase tracking-widest text-brand-muted font-bold mb-6">Infraestructura tecnológica diseñada para líderes del sector</p>
+            <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition duration-500">
+                <div class="flex items-center gap-2 font-bold text-xl"><i data-lucide="hexagon" class="w-6 h-6"></i> NEXUS BUILD</div>
+                <div class="flex items-center gap-2 font-bold text-xl"><i data-lucide="triangle" class="w-6 h-6"></i> AURA CAPITAL</div>
+                <div class="flex items-center gap-2 font-bold text-xl"><i data-lucide="box" class="w-6 h-6"></i> STUDIO 9 ARCH</div>
+                <div class="flex items-center gap-2 font-bold text-xl"><i data-lucide="layers" class="w-6 h-6"></i> VECTRA</div>
+                <div class="flex items-center gap-2 font-bold text-xl hidden md:flex"><i data-lucide="circle-dot" class="w-6 h-6"></i> OMNIA FONDS</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MÉTRICAS ANIMADAS -->
+    <section id="metricas" class="py-24 bg-brand-dark">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-brand-border/50 reveal">
+                <div class="text-center px-4">
+                    <h4 class="text-4xl md:text-5xl font-black text-white mb-2"><span class="counter" data-target="240">0</span>+</h4>
+                    <p class="text-xs uppercase tracking-widest text-brand-muted">Estudios Verificados</p>
+                </div>
+                <div class="text-center px-4">
+                    <h4 class="text-4xl md:text-5xl font-black text-white mb-2"><span class="counter" data-target="85">0</span>M€</h4>
+                    <p class="text-xs uppercase tracking-widest text-brand-muted">En Pipeline de Obras</p>
+                </div>
+                <div class="text-center px-4">
+                    <h4 class="text-4xl md:text-5xl font-black text-blue-500 mb-2"><span class="counter" data-target="98">0</span>%</h4>
+                    <p class="text-xs uppercase tracking-widest text-brand-muted">Éxito en UTEs formadas</p>
+                </div>
+                <div class="text-center px-4">
+                    <h4 class="text-4xl md:text-5xl font-black text-white mb-2"><span class="counter" data-target="12">0</span></h4>
+                    <p class="text-xs uppercase tracking-widest text-brand-muted">Constructoras Tier 1</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EL ECOSISTEMA B2B -->
+    <section id="solucion" class="py-24 bg-brand-card/50 border-y border-brand-border">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-20 reveal">
+                <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-4">El Ecosistema</h2>
+                <h3 class="text-4xl md:text-5xl font-black text-white mb-6">Rompiendo silos en la construcción</h3>
+                <p class="text-brand-muted text-lg">Unimos a los tres grandes actores del Real Estate en una única capa digital basada en reputación verificada.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Tarjeta 1 -->
+                <div class="bg-brand-dark rounded-3xl border border-brand-border p-8 reveal hover:-translate-y-2 transition duration-300">
+                    <div class="w-14 h-14 bg-blue-600/20 border border-blue-500/50 rounded-2xl flex items-center justify-center mb-8">
+                        <i data-lucide="pen-tool" class="w-7 h-7 text-blue-400"></i>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Email Corporativo</label>
-                        <input type="email" id="userEmail" required placeholder="direccion@tuempresa.com" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:border-blue-500 outline-none transition">
+                    <h4 class="text-2xl font-bold text-white mb-4">Estudios & Diseño</h4>
+                    <p class="text-brand-muted leading-relaxed mb-6">Multiplica la capacidad de tu estudio. Encuentra ingenieros BIM, calculistas estructurales o partners locales para concursos públicos en 24 horas.</p>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-blue-500 mt-0.5"></i> Perfiles validados</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-blue-500 mt-0.5"></i> Matching por especialidad</li>
+                    </ul>
+                </div>
+
+                <!-- Tarjeta 2 -->
+                <div class="bg-brand-dark rounded-3xl border border-brand-border p-8 reveal hover:-translate-y-2 transition duration-300 delay-100">
+                    <div class="w-14 h-14 bg-amber-500/20 border border-amber-500/50 rounded-2xl flex items-center justify-center mb-8">
+                        <i data-lucide="hard-hat" class="w-7 h-7 text-amber-400"></i>
                     </div>
-                    <button type="submit" id="btnSubmitDossier" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition text-sm flex justify-center items-center gap-2 mt-4">
-                        Descargar Documento Confidencial
+                    <h4 class="text-2xl font-bold text-white mb-4">Constructoras</h4>
+                    <p class="text-brand-muted leading-relaxed mb-6">Acceso directo a proyectos "Shovel-Ready". No esperes a licitaciones públicas; asóciate con estudios que ya tienen licencias y promotores.</p>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-amber-500 mt-0.5"></i> Deal-flow exclusivo</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-amber-500 mt-0.5"></i> Reducción de riesgos</li>
+                    </ul>
+                </div>
+
+                <!-- Tarjeta 3 -->
+                <div class="bg-brand-dark rounded-3xl border border-brand-border p-8 reveal hover:-translate-y-2 transition duration-300 delay-200">
+                    <div class="w-14 h-14 bg-emerald-500/20 border border-emerald-500/50 rounded-2xl flex items-center justify-center mb-8">
+                        <i data-lucide="landmark" class="w-7 h-7 text-emerald-400"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-white mb-4">Inversores & Fondos</h4>
+                    <p class="text-brand-muted leading-relaxed mb-6">Supervisa la cadena de valor completa. Invierte en desarrollos donde el equipo técnico y constructor ya está consolidado y auditado por Bniarq.</p>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5"></i> Trazabilidad total</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5"></i> Control de viabilidad</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MÓDULOS DE SOFTWARE (INTERACTIVO) -->
+    <section id="modulos" class="py-24 bg-brand-dark overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-4">La Tecnología Core</h2>
+                <h3 class="text-4xl font-black text-white mb-6">Mucho más que un directorio</h3>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-12 items-center reveal">
+                <!-- Botones de Pestañas -->
+                <div class="w-full lg:w-1/3 flex flex-col gap-4">
+                    <button onclick="changeFeature('grafo')" id="tab-grafo" class="feature-tab active-tab text-left p-6 rounded-2xl border transition-all duration-300">
+                        <h4 class="text-xl font-bold text-white mb-2 flex items-center gap-3"><i data-lucide="network" class="w-5 h-5"></i> Grafo de Confianza</h4>
+                        <p class="text-sm text-brand-muted">Historial inmutable de cumplimientos, plazos y calidad de entregas pasadas.</p>
+                    </button>
+                    <button onclick="changeFeature('dataroom')" id="tab-dataroom" class="feature-tab inactive-tab text-left p-6 rounded-2xl border border-transparent hover:border-brand-border transition-all duration-300">
+                        <h4 class="text-xl font-bold text-white mb-2 flex items-center gap-3"><i data-lucide="folder-lock" class="w-5 h-5"></i> Secure Data Room</h4>
+                        <p class="text-sm text-brand-muted">NDAs automáticos y espacios seguros para compartir planos BIM y presupuestos.</p>
+                    </button>
+                    <button onclick="changeFeature('matching')" id="tab-matching" class="feature-tab inactive-tab text-left p-6 rounded-2xl border border-transparent hover:border-brand-border transition-all duration-300">
+                        <h4 class="text-xl font-bold text-white mb-2 flex items-center gap-3"><i data-lucide="cpu" class="w-5 h-5"></i> AI Matching</h4>
+                        <p class="text-sm text-brand-muted">El motor cruza licencias de software (Revit), zona horaria y certificaciones (LEED).</p>
                     </button>
                 </div>
 
-                <!-- Mensaje de éxito del Dossier -->
-                <div id="dossierSuccess" class="absolute inset-0 bg-brand-dark flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 rounded-3xl z-20">
-                    <div class="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
-                        <i data-lucide="check-circle" class="w-8 h-8"></i>
+                <!-- Imagen/Visual de la Pestaña -->
+                <div class="w-full lg:w-2/3">
+                    <div class="bg-brand-card border border-brand-border rounded-3xl p-2 relative shadow-[0_0_50px_rgba(37,99,235,0.1)] h-[400px] overflow-hidden group">
+                        
+                        <!-- Vista 1: Grafo -->
+                        <div id="img-grafo" class="feature-img absolute inset-0 transition-opacity duration-500 opacity-100 p-2">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover rounded-2xl opacity-60 mix-blend-luminosity group-hover:scale-105 transition duration-700" alt="Dashboard Grafo">
+                            <div class="absolute bottom-10 left-10 bg-brand-dark/90 backdrop-blur border border-brand-border p-6 rounded-2xl shadow-xl">
+                                <div class="text-xs text-brand-muted uppercase mb-1">Reputación Verificada</div>
+                                <div class="text-3xl font-black text-emerald-400">98.5% <span class="text-sm font-normal text-white">Fiabilidad</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Vista 2: Data Room -->
+                        <div id="img-dataroom" class="feature-img absolute inset-0 transition-opacity duration-500 opacity-0 pointer-events-none p-2">
+                            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover rounded-2xl opacity-60 mix-blend-luminosity group-hover:scale-105 transition duration-700" alt="Data Room">
+                            <div class="absolute top-10 right-10 bg-brand-dark/90 backdrop-blur border border-brand-border p-6 rounded-2xl shadow-xl flex items-center gap-4">
+                                <i data-lucide="lock" class="w-8 h-8 text-blue-500"></i>
+                                <div>
+                                    <div class="text-xs text-brand-muted uppercase mb-1">Status NDA</div>
+                                    <div class="text-lg font-bold text-white">Firmado Digitalmente</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vista 3: Matching -->
+                        <div id="img-matching" class="feature-img absolute inset-0 transition-opacity duration-500 opacity-0 pointer-events-none p-2">
+                            <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover rounded-2xl opacity-60 mix-blend-luminosity group-hover:scale-105 transition duration-700" alt="Matching Tech">
+                            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-brand-dark/90 backdrop-blur border border-brand-border p-4 rounded-2xl shadow-xl flex gap-6 w-11/12 max-w-md">
+                                <div class="flex-1 border-r border-brand-border">
+                                    <div class="text-xs text-brand-muted uppercase">Requiere</div>
+                                    <div class="font-bold text-white">Revit / BIM</div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-xs text-brand-muted uppercase">Match Encontrado</div>
+                                    <div class="font-bold text-blue-400">Estudio 100% Compatible</div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <h4 class="text-xl font-bold text-white mb-2">¡Dossier preparado!</h4>
-                    <p class="text-sm text-brand-muted text-center px-6">El documento B2B está siendo enviado de forma segura a tu correo corporativo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIOS (CASOS DE USO) -->
+    <section class="py-24 bg-brand-card/30 border-y border-brand-border">
+        <div class="max-w-7xl mx-auto px-6 reveal">
+            <h2 class="text-3xl font-black text-center text-white mb-16">Lo que dicen los líderes del sector</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-brand-dark p-8 rounded-3xl border border-brand-border relative">
+                    <i data-lucide="quote" class="w-10 h-10 text-brand-border absolute top-6 right-6"></i>
+                    <p class="text-brand-muted text-lg leading-relaxed mb-8 italic">"Antes descartábamos concursos internacionales porque no teníamos especialistas BIM locales. Con Bniarq, formamos una UTE técnica en 48 horas con un estudio de Barcelona altamente verificado. Ganamos el proyecto."</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center font-bold">EA</div>
+                        <div>
+                            <h5 class="text-white font-bold">Elena Aris</h5>
+                            <p class="text-xs text-blue-400">CEO, Aris Studio Partners</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-brand-dark p-8 rounded-3xl border border-brand-border relative">
+                    <i data-lucide="quote" class="w-10 h-10 text-brand-border absolute top-6 right-6"></i>
+                    <p class="text-brand-muted text-lg leading-relaxed mb-8 italic">"Nuestro gran problema como constructora era el 'deal-flow'. Ahora Bniarq nos notifica cuando un gran proyecto residencial obtiene licencia y busca financiación. Es oro puro para nuestro comité de inversiones."</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center font-bold">MR</div>
+                        <div>
+                            <h5 class="text-white font-bold">Marcos Rivera</h5>
+                            <p class="text-xs text-amber-400">Director de Desarrollo, Nexus Build</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODELO DE NEGOCIO / PRICING -->
+    <section id="precios" class="py-24 bg-brand-dark">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-4">Modelo de Negocio</h2>
+                <h3 class="text-4xl font-black text-white mb-6">Planes escalables B2B</h3>
+                <p class="text-brand-muted">Desde la creación de perfiles hasta la integración total de pipeline para grandes fondos de inversión.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 items-center reveal">
+                <!-- Plan 1 -->
+                <div class="bg-brand-card p-8 rounded-3xl border border-brand-border">
+                    <h4 class="text-xl font-bold text-white mb-2">Basic Network</h4>
+                    <p class="text-sm text-brand-muted mb-6">Para arquitectos independientes.</p>
+                    <div class="text-4xl font-black text-white mb-6">0€<span class="text-sm font-normal text-brand-muted"> /mes</span></div>
+                    <ul class="space-y-4 text-sm text-brand-muted mb-8 border-t border-brand-border pt-6">
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Perfil público verificado</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Portafolio de proyectos</li>
+                        <li class="flex items-center gap-3 opacity-50"><i data-lucide="x" class="w-4 h-4"></i> Data Room Seguro</li>
+                    </ul>
+                    <button class="w-full bg-brand-dark border border-brand-border text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Crear cuenta gratis</button>
+                </div>
+
+                <!-- Plan 2 (Destacado) -->
+                <div class="bg-brand-dark p-8 rounded-3xl border-2 border-blue-500 relative transform md:-translate-y-4 shadow-[0_0_30px_rgba(37,99,235,0.15)]">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-wider">Estudios Medianos/Grandes</div>
+                    <h4 class="text-xl font-bold text-white mb-2">Studio Pro SaaS</h4>
+                    <p class="text-sm text-blue-400 mb-6">Amplía tu capacidad técnica.</p>
+                    <div class="text-4xl font-black text-white mb-6">149€<span class="text-sm font-normal text-brand-muted"> /mes</span></div>
+                    <ul class="space-y-4 text-sm text-gray-300 mb-8 border-t border-brand-border pt-6">
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-blue-500"></i> Búsqueda AI de colaboradores</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-blue-500"></i> Secure Data Room + NDAs</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-blue-500"></i> Gestión de UTEs online</li>
+                    </ul>
+                    <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-500 transition">Prueba de 14 días</button>
+                </div>
+
+                <!-- Plan 3 -->
+                <div class="bg-brand-card p-8 rounded-3xl border border-brand-border">
+                    <h4 class="text-xl font-bold text-white mb-2">Enterprise Capital</h4>
+                    <p class="text-sm text-brand-muted mb-6">Para Constructoras y Fondos.</p>
+                    <div class="text-4xl font-black text-white mb-6">Custom</div>
+                    <ul class="space-y-4 text-sm text-brand-muted mb-8 border-t border-brand-border pt-6">
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-amber-500"></i> Deal-flow de proyectos "Shovel-Ready"</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-amber-500"></i> Due Diligence Técnica</li>
+                        <li class="flex items-center gap-3"><i data-lucide="check" class="w-4 h-4 text-amber-500"></i> Integración API / ERP</li>
+                    </ul>
+                    <button class="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition">Contactar Ventas</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FORMULARIO DIRECTIVO (Dossier Final) -->
+    <section id="contacto" class="py-32 relative overflow-hidden bg-brand-card/30">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_50%_100%,rgba(37,99,235,0.1),rgba(255,255,255,0))]"></div>
+        <div class="max-w-3xl mx-auto px-6 text-center relative z-10 reveal">
+            <h2 class="text-4xl font-black mb-4">Lleva Bniarq a tu próximo Comité</h2>
+            <p class="text-brand-muted text-base mb-10">Solicita el Dossier Ejecutivo completo con análisis de mercado, estrategia Go-To-Market y proyecciones de monetización.</p>
+            
+            <form id="dossierForm" class="bg-brand-dark p-8 md:p-12 rounded-3xl border border-brand-border text-left shadow-2xl relative">
+                <div id="formContent" class="space-y-6 transition-opacity duration-300">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-brand-muted mb-2 uppercase tracking-wider">Nombre Completo</label>
+                            <input type="text" required placeholder="Ej. Javier García" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:border-blue-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-brand-muted mb-2 uppercase tracking-wider">Cargo / Empresa</label>
+                            <input type="text" required placeholder="Director General / CEO" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:border-blue-500 outline-none transition">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-brand-muted mb-2 uppercase tracking-wider">Email Corporativo</label>
+                        <input type="email" required placeholder="direccion@tuempresa.com" class="w-full bg-brand-card border border-brand-border rounded-xl px-5 py-4 text-white text-sm focus:border-blue-500 outline-none transition">
+                    </div>
+                    <button type="submit" id="btnSubmitDossier" class="w-full bg-blue-600 text-white font-bold py-5 rounded-xl hover:bg-blue-500 transition text-base flex justify-center items-center gap-2 mt-4">
+                        Descargar Documento Estratégico PDF
+                    </button>
+                    <p class="text-center text-xs text-brand-muted mt-4"><i data-lucide="lock" class="w-3 h-3 inline mr-1"></i> Documento confidencial encriptado.</p>
+                </div>
+
+                <!-- Mensaje de éxito -->
+                <div id="dossierSuccess" class="absolute inset-0 bg-brand-dark flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500 rounded-3xl z-20">
+                    <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20">
+                        <i data-lucide="check" class="w-10 h-10"></i>
+                    </div>
+                    <h4 class="text-2xl font-black text-white mb-2">¡Dossier preparado!</h4>
+                    <p class="text-sm text-brand-muted text-center px-6">El documento de estrategia B2B está siendo enviado de forma segura a tu correo corporativo. Revisa tu bandeja de entrada en unos instantes.</p>
                 </div>
             </form>
         </div>
     </section>
 
-    <!-- ========================================== -->
-    <!-- MODAL B2B: FORMULARIO DE PROPUESTA/NDA     -->
-    <!-- ========================================== -->
-    <div id="proposalModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
-        <!-- Fondo oscuro -->
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeModal()"></div>
-        
-        <!-- Ventana del Modal -->
-        <div class="bg-[#0a0a0a] border border-brand-border w-full max-w-2xl mx-4 rounded-2xl shadow-2xl relative z-[101] transform scale-95 opacity-0 transition-all duration-300 flex flex-col overflow-hidden" id="modalWindow">
-            
-            <div class="border-b border-brand-border p-6 bg-brand-card/50 flex justify-between items-center">
-                <div>
-                    <span class="text-[10px] uppercase tracking-widest text-brand-muted flex items-center gap-2 mb-1">
-                        <i data-lucide="shield-check" class="w-3 h-3 text-emerald-500"></i> Entorno Protegido
-                    </span>
-                    <h3 class="text-xl font-bold text-white">Solicitud de alianza para <span id="modalTargetName" class="text-blue-400"></span></h3>
-                </div>
-                <button type="button" onclick="closeModal()" class="text-brand-muted hover:text-white transition bg-brand-dark p-2 rounded-full border border-brand-border">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+    <!-- FOOTER EXPANDIDO -->
+    <footer class="pt-16 pb-8 bg-brand-dark border-t border-brand-border">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div>
+                <span class="text-2xl font-black tracking-tighter text-white block mb-6">bniarq<span class="text-blue-600">.</span></span>
+                <p class="text-sm text-brand-muted">Construyendo la infraestructura digital de confianza para el sector inmobiliario y arquitectónico.</p>
             </div>
-
-            <!-- Formulario de contacto B2B -->
-            <form id="b2bForm" class="p-6 md:p-8 space-y-5">
-                <div id="proposalFormContent">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Código Interno del Proyecto</label>
-                            <input type="text" required placeholder="Ej. PRJ-Marina-2026" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Fecha límite de respuesta</label>
-                            <input type="date" required class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none transition [color-scheme:dark]">
-                        </div>
-                    </div>
-                    
-                    <div class="mt-5">
-                        <label class="block text-xs font-semibold text-brand-muted mb-2 uppercase tracking-wider">Resumen Ejecutivo de la Petición</label>
-                        <textarea required rows="4" placeholder="Justifica brevemente por qué solicitas la apertura de la sala de trabajo virtual (Data Room)..." class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none transition resize-none"></textarea>
-                    </div>
-
-                    <div class="mt-5 bg-brand-card border border-brand-border rounded-xl p-4 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-brand-dark p-3 rounded-lg border border-brand-border">
-                                <i data-lucide="file-key" class="w-5 h-5 text-brand-muted"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-semibold text-white">Firma de NDA requerida</p>
-                                <p class="text-xs text-brand-muted">Acuerdo de confidencialidad mutuo.</p>
-                            </div>
-                        </div>
-                        <div class="hidden sm:block text-[10px] text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 font-bold uppercase tracking-wider">Smart Contract</div>
-                    </div>
-
-                    <div class="mt-8">
-                        <button type="submit" id="btnSubmitProposal" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition text-sm flex justify-center items-center gap-2">
-                            Firmar y Enviar Petición Oficial
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Mensaje de éxito del Modal -->
-                <div id="proposalSuccess" class="hidden flex-col items-center justify-center text-center py-10 opacity-0 transition-opacity duration-500 z-20">
-                    <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
-                        <i data-lucide="check" class="w-10 h-10"></i>
-                    </div>
-                    <h4 class="text-2xl font-bold text-white mb-3">Petición Registrada</h4>
-                    <p class="text-sm text-brand-muted max-w-sm mx-auto leading-relaxed">
-                        Se ha notificado al consejo de la empresa. En cuanto acepten el acuerdo de confidencialidad, se habilitará la sala de trabajo compartida.
-                    </p>
-                    <button type="button" onclick="closeModal()" class="mt-8 bg-brand-card border border-brand-border hover:border-gray-500 text-white px-8 py-3 rounded-full text-sm font-semibold transition">Finalizar</button>
-                </div>
-            </form>
+            <div>
+                <h5 class="font-bold text-white mb-4">Plataforma</h5>
+                <ul class="space-y-2 text-sm text-brand-muted">
+                    <li><a href="#" class="hover:text-blue-400 transition">Para Estudios</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Para Constructoras</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Data Room</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Precios SaaS</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-bold text-white mb-4">Empresa</h5>
+                <ul class="space-y-2 text-sm text-brand-muted">
+                    <li><a href="#" class="hover:text-blue-400 transition">Manifiesto</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Casos de Éxito</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Dossier Inversores</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Contacto</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-bold text-white mb-4">Legal</h5>
+                <ul class="space-y-2 text-sm text-brand-muted">
+                    <li><a href="#" class="hover:text-blue-400 transition">Términos B2B</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Privacidad</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Seguridad de Datos</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
+        <div class="max-w-7xl mx-auto px-6 border-t border-brand-border pt-8 text-center flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-xs text-brand-muted">&copy; 2026 Bniarq Tech Solutions. Prototype Edition.</p>
+            <div class="flex gap-4">
+                <i data-lucide="linkedin" class="w-5 h-5 text-brand-muted hover:text-white cursor-pointer transition"></i>
+                <i data-lucide="twitter" class="w-5 h-5 text-brand-muted hover:text-white cursor-pointer transition"></i>
+            </div>
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script src="script.js"></script>

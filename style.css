@@ -1,32 +1,33 @@
-/* Custom CSS Bniarq B2B - v4.0 */
+/* Custom CSS Bniarq - Súper Versión Corporativa */
 
 html { scroll-behavior: smooth; }
-body { background-color: #050505; }
+body { background-color: #030303; }
 
 /* Scrollbar B2B */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #050505; }
-::-webkit-scrollbar-thumb { background: #333333; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #030303; }
+::-webkit-scrollbar-thumb { background: #222222; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #2563EB; }
 
-/* Animaciones de aparición (Scroll) */
+/* Animaciones Reveal (Scroll) */
 .reveal {
     opacity: 0;
-    transform: translateY(30px);
-    transition: all 0.7s cubic-bezier(0.5, 0, 0, 1);
+    transform: translateY(40px);
+    transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .reveal.active {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* Blur de la cabecera */
+/* Efecto Header Scrolled */
 .navbar-scrolled {
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
-    background-color: rgba(5, 5, 5, 0.95);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+    background-color: rgba(3, 3, 3, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Loader Circular */
+/* Loader Circular del Formulario */
 .loading-spinner {
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-left-color: #ffffff; 
@@ -34,26 +35,23 @@ body { background-color: #050505; }
     animation: spin 1s linear infinite;
     display: inline-block;
 }
-.loading-spinner.black-border {
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #000000;
-}
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Transición del Modal */
-.modal-show {
-    transform: scale(1) !important;
-    opacity: 1 !important;
+/* Estilos de las Pestañas Interactivas (Módulos) */
+.feature-tab {
+    background-color: #0c0c0c;
 }
-
-/* Animación de los resultados de búsqueda */
-.fade-in-up {
-    animation: fadeInUp 0.5s ease-out forwards;
+.active-tab {
+    border-color: #2563EB;
+    background-color: rgba(37, 99, 235, 0.05);
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.1);
 }
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+.inactive-tab {
+    opacity: 0.6;
+}
+.inactive-tab:hover {
+    opacity: 1;
 }

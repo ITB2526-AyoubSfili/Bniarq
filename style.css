@@ -1,4 +1,4 @@
-/* Custom CSS Bniarq - Súper Versión Corporativa */
+/* Custom CSS Bniarq - Súper Versión Corporativa Completa */
 
 html { scroll-behavior: smooth; }
 body { background-color: #030303; }
@@ -54,4 +54,73 @@ body { background-color: #030303; }
 }
 .inactive-tab:hover {
     opacity: 1;
+}
+
+/* ========================================== */
+/* ESTILOS DEL WIDGET DE CHAT                 */
+/* ========================================== */
+.chat-open {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+}
+
+/* Scrollbar interno del chat */
+#chat-messages::-webkit-scrollbar { width: 4px; }
+#chat-messages::-webkit-scrollbar-thumb { background: #333333; border-radius: 4px; }
+
+/* Bocadillo del Bot */
+.chat-msg-bot {
+    background-color: #1a1a1a;
+    border: 1px solid #262626;
+    color: #e5e5e5;
+    border-radius: 12px 12px 12px 2px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    max-width: 85%;
+    align-self: flex-start;
+    animation: fadeInMsg 0.3s ease;
+    line-height: 1.4;
+}
+
+/* Bocadillo del Usuario */
+.chat-msg-user {
+    background-color: #2563EB;
+    color: #ffffff;
+    border-radius: 12px 12px 2px 12px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    max-width: 85%;
+    align-self: flex-end;
+    animation: fadeInMsg 0.3s ease;
+    line-height: 1.4;
+}
+
+/* Animación de "Escribiendo..." */
+.chat-typing {
+    display: flex;
+    gap: 4px;
+    padding: 12px 14px;
+    background-color: #1a1a1a;
+    border: 1px solid #262626;
+    border-radius: 12px 12px 12px 2px;
+    align-self: flex-start;
+    width: fit-content;
+}
+.chat-typing span {
+    width: 6px;
+    height: 6px;
+    background-color: #737373;
+    border-radius: 50%;
+    animation: typingDots 1.4s infinite ease-in-out both;
+}
+.chat-typing span:nth-child(1) { animation-delay: -0.32s; }
+.chat-typing span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typingDots {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+@keyframes fadeInMsg {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initDossierForm();
     loadProfiles();
     initProfileRegistration();
+    initNdaModal();
 });
 
 // ==========================================
@@ -132,7 +133,7 @@ function renderProfiles(profiles) {
                     <i data-lucide="cpu" class="w-4 h-4"></i> ${p.software}
                 </div>
             </div>
-            <button onclick="alert('Conexión enviada a ${p.name}. Se ha registrado en el sistema de NDA seguro.')" class="w-full bg-brand-dark border border-brand-border hover:bg-brand-border text-white text-xs font-bold py-3 rounded-xl transition">
+            <button onclick="openNdaModal('${p.name.replace(/'/g, "\\'")}')" class="w-full bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition">
                 Conectar / Enviar NDA
             </button>
         `;
@@ -179,6 +180,88 @@ function filterProfiles() {
         p.software.toLowerCase().includes(query)
     );
     renderProfiles(filtered);
+}
+
+// ==========================================
+// SISTEMA REAL DE NDA Y CONEXIÓN (MODAL)
+// ==========================================
+function initNdaModal() {
+    // Crear el contenedor modal dinámicamente si no existe
+    if (document.getElementById('ndaModal')) return;
+
+    const modalHTML = `
+        <div id="ndaModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
+                <button onclick="closeNdaModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+                <div id="ndaFormContainer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/30">
+                            <i data-lucide="folder-lock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Acuerdo de Confidencialidad</h3>
+                            <p class="text-xs text-brand-muted">Conectando con <span id="targetStudioName" class="text-white font-semibold"></span></p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-brand-muted mb-6 leading-relaxed">
+                        Para abrir una Secure Data Room y compartir documentación técnica, ambas partes deben suscribir el NDA digital bajo normativa corporativa Bniarq.
+                    </p>
+                    <form id="ndaActionForm" onsubmit="submitNda(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Tu Correo Corporativo</label>
+                            <input type="email" id="ndaEmail" required placeholder="tu@empresa.com" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg flex items-center justify-center gap-2">
+                            Firmar NDA y Abrir Data Room
+                        </button>
+                    </form>
+                </div>
+                <div id="ndaSuccessContainer" class="hidden text-center py-6">
+                    <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+                        <i data-lucide="check" class="w-7 h-7"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-2">¡NDA Firmado con Éxito!</h4>
+                    <p class="text-xs text-brand-muted mb-6">Hemos enviado las credenciales cifradas de la sala segura a tu correo corporativo.</p>
+                    <button onclick="closeNdaModal()" class="w-full bg-brand-card border border-brand-border text-white text-xs font-bold py-3 rounded-xl hover:bg-brand-border transition">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+let activeStudio = "";
+
+function openNdaModal(studioName) {
+    activeStudio = studioName;
+    document.getElementById('targetStudioName').textContent = studioName;
+    document.getElementById('ndaFormContainer').classList.remove('hidden');
+    document.getElementById('ndaSuccessContainer').classList.add('hidden');
+    document.getElementById('ndaEmail').value = '';
+    
+    const modal = document.getElementById('ndaModal');
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+}
+
+function closeNdaModal() {
+    const modal = document.getElementById('ndaModal');
+    modal.classList.add('opacity-0');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+function submitNda(e) {
+    e.preventDefault();
+    const email = document.getElementById('ndaEmail').value;
+    
+    // Simular proceso de firma digital y apertura de Secure Data Room
+    document.getElementById('ndaFormContainer').classList.add('hidden');
+    document.getElementById('ndaSuccessContainer').classList.remove('hidden');
 }
 
 // ==========================================

@@ -1,33 +1,26 @@
-/* Custom CSS Bniarq - Súper Versión Corporativa Completa */
-
 html { scroll-behavior: smooth; }
 body { background-color: #030303; }
 
-/* Scrollbar B2B */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #030303; }
 ::-webkit-scrollbar-thumb { background: #222222; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #2563EB; }
 
-/* Animaciones Reveal (Scroll) */
 .reveal {
     opacity: 0;
-    transform: translateY(40px);
-    transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform: translateY(30px);
+    transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .reveal.active {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* Efecto Header Scrolled */
 .navbar-scrolled {
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
-    background-color: rgba(3, 3, 3, 0.95);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(3, 3, 3, 0.98);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Loader Circular del Formulario */
 .loading-spinner {
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-left-color: #ffffff; 
@@ -40,35 +33,27 @@ body { background-color: #030303; }
     100% { transform: rotate(360deg); }
 }
 
-/* Estilos de las Pestañas Interactivas (Módulos) */
 .feature-tab {
     background-color: #0c0c0c;
 }
 .active-tab {
     border-color: #2563EB;
-    background-color: rgba(37, 99, 235, 0.05);
-    box-shadow: 0 0 20px rgba(37, 99, 235, 0.1);
+    background-color: rgba(37, 99, 235, 0.03);
 }
 .inactive-tab {
-    opacity: 0.6;
+    opacity: 0.5;
 }
 .inactive-tab:hover {
     opacity: 1;
 }
 
-/* ========================================== */
-/* ESTILOS DEL WIDGET DE CHAT                 */
-/* ========================================== */
 .chat-open {
     transform: scale(1) !important;
     opacity: 1 !important;
 }
-
-/* Scrollbar interno del chat */
 #chat-messages::-webkit-scrollbar { width: 4px; }
 #chat-messages::-webkit-scrollbar-thumb { background: #333333; border-radius: 4px; }
 
-/* Bocadillo del Bot */
 .chat-msg-bot {
     background-color: #1a1a1a;
     border: 1px solid #262626;
@@ -81,8 +66,6 @@ body { background-color: #030303; }
     animation: fadeInMsg 0.3s ease;
     line-height: 1.4;
 }
-
-/* Bocadillo del Usuario */
 .chat-msg-user {
     background-color: #2563EB;
     color: #ffffff;
@@ -92,26 +75,15 @@ body { background-color: #030303; }
     max-width: 85%;
     align-self: flex-end;
     animation: fadeInMsg 0.3s ease;
-    line-height: 1.4;
 }
-
-/* Animación de "Escribiendo..." */
 .chat-typing {
-    display: flex;
-    gap: 4px;
-    padding: 12px 14px;
-    background-color: #1a1a1a;
-    border: 1px solid #262626;
-    border-radius: 12px 12px 12px 2px;
-    align-self: flex-start;
-    width: fit-content;
+    display: flex; gap: 4px; padding: 12px 14px;
+    background-color: #1a1a1a; border: 1px solid #262626;
+    border-radius: 12px 12px 12px 2px; width: fit-content;
 }
 .chat-typing span {
-    width: 6px;
-    height: 6px;
-    background-color: #737373;
-    border-radius: 50%;
-    animation: typingDots 1.4s infinite ease-in-out both;
+    width: 6px; height: 6px; background-color: #737373;
+    border-radius: 50%; animation: typingDots 1.4s infinite ease-in-out both;
 }
 .chat-typing span:nth-child(1) { animation-delay: -0.32s; }
 .chat-typing span:nth-child(2) { animation-delay: -0.16s; }

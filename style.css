@@ -33,20 +33,6 @@ body { background-color: #030303; }
     100% { transform: rotate(360deg); }
 }
 
-.feature-tab {
-    background-color: #0c0c0c;
-}
-.active-tab {
-    border-color: #2563EB;
-    background-color: rgba(37, 99, 235, 0.03);
-}
-.inactive-tab {
-    opacity: 0.5;
-}
-.inactive-tab:hover {
-    opacity: 1;
-}
-
 .chat-open {
     transform: scale(1) !important;
     opacity: 1 !important;

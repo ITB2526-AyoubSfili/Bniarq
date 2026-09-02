@@ -1,8 +1,27 @@
+// Importar funciones de Firebase SDK
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Tu configuración oficial de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBYsGex2nRwItwWIqKZhx3UDBOJo-OwR9s",
+    authDomain: "bniarqdatabase.firebaseapp.com",
+    projectId: "bniarqdatabase",
+    storageBucket: "bniarqdatabase.firebasestorage.app",
+    messagingSenderId: "257818104962",
+    appId: "1:257818104962:web:c5681ccc0f02a453f6509b",
+    measurementId: "G-00SC5P9160"
+};
+
+// Inicializar Firebase y Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
     initScrollAnimations();
     initDossierForm();
-    loadProfiles();
+    loadProfilesFromFirebase(); // Carga los perfiles desde la nube de Firebase
     initProfileRegistration();
     initNdaModal();
 });
@@ -75,7 +94,7 @@ function initDossierForm() {
 }
 
 // ==========================================
-// GESTIÓN DE PERFILES Y RED (LOCALSTORAGE + FOTOS)
+// GESTIÓN DE PERFILES Y RED (FIREBASE CLOUD)
 // ==========================================
 const defaultProfiles = [
     { 
@@ -101,13 +120,29 @@ const defaultProfiles = [
     }
 ];
 
-function loadProfiles() {
-    let savedProfiles = JSON.parse(localStorage.getItem('bniarq_profiles'));
-    if (!savedProfiles) {
-        savedProfiles = defaultProfiles;
-        localStorage.setItem('bniarq_profiles', JSON.stringify(savedProfiles));
+let allProfilesCache = [];
+
+async function loadProfilesFromFirebase() {
+    const grid = document.getElementById('profilesGrid');
+    if (!grid) return;
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "perfiles"));
+        allProfilesCache = [];
+        
+        querySnapshot.forEach((doc) => {
+            allProfilesCache.push(doc.data());
+        });
+
+        if (allProfilesCache.length === 0) {
+            allProfilesCache = defaultProfiles;
+        }
+
+        renderProfiles(allProfilesCache);
+    } catch (error) {
+        console.error("Error al cargar de Firebase, usando fallback local: ", error);
+        renderProfiles(defaultProfiles);
     }
-    renderProfiles(savedProfiles);
 }
 
 function renderProfiles(profiles) {
@@ -146,24 +181,54 @@ function initProfileRegistration() {
     const form = document.getElementById('profileForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const newProfile = {
-            name: document.getElementById('pName').value,
-            role: document.getElementById('pRole').value,
-            location: document.getElementById('pLocation').value,
-            software: document.getElementById('pSoftware').value,
-            photo: document.getElementById('pPhoto').value
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = "Guardando en la nube...";
+        submitBtn.disabled = true;
+
+        const fileInput = document.getElementById('pPhotoFile');
+        let photoData = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=400&auto=format&fit=crop"; 
+
+        const saveToFirestore = async (finalPhotoUrl) => {
+            const newProfile = {
+                name: document.getElementById('pName').value,
+                role: document.getElementById('pRole').value,
+                location: document.getElementById('pLocation').value,
+                software: document.getElementById('pSoftware').value,
+                photo: finalPhotoUrl,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await addDoc(collection(db, "perfiles"), newProfile);
+                form.reset();
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                
+                alert('¡Perfil guardado y publicado con éxito en la red global!');
+                loadProfilesFromFirebase(); 
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                console.error("Error al guardar en Firebase: ", error);
+                alert("Hubo un error al guardar el perfil en la nube.");
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         };
 
-        let profiles = JSON.parse(localStorage.getItem('bniarq_profiles')) || [];
-        profiles.unshift(newProfile);
-        localStorage.setItem('bniarq_profiles', JSON.stringify(profiles));
-
-        renderProfiles(profiles);
-        form.reset();
-        alert('¡Perfil guardado y publicado con éxito en la red!');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Si el usuario adjunta una foto desde su PC, la procesamos
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                photoData = uploadEvent.target.result;
+                saveToFirestore(photoData);
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            saveToFirestore(photoData);
+        }
     });
 }
 
@@ -171,9 +236,8 @@ function filterProfiles() {
     const queryElement = document.getElementById('searchInput');
     if (!queryElement) return;
     const query = queryElement.value.toLowerCase();
-    const profiles = JSON.parse(localStorage.getItem('bniarq_profiles')) || defaultProfiles;
     
-    const filtered = profiles.filter(p => 
+    const filtered = allProfilesCache.filter(p => 
         p.name.toLowerCase().includes(query) || 
         p.role.toLowerCase().includes(query) || 
         p.location.toLowerCase().includes(query) ||
@@ -186,7 +250,6 @@ function filterProfiles() {
 // SISTEMA REAL DE NDA Y CONEXIÓN (MODAL)
 // ==========================================
 function initNdaModal() {
-    // Crear el contenedor modal dinámicamente si no existe
     if (document.getElementById('ndaModal')) return;
 
     const modalHTML = `
@@ -237,7 +300,7 @@ function initNdaModal() {
 
 let activeStudio = "";
 
-function openNdaModal(studioName) {
+window.openNdaModal = function(studioName) {
     activeStudio = studioName;
     document.getElementById('targetStudioName').textContent = studioName;
     document.getElementById('ndaFormContainer').classList.remove('hidden');
@@ -247,22 +310,19 @@ function openNdaModal(studioName) {
     const modal = document.getElementById('ndaModal');
     modal.classList.remove('hidden');
     setTimeout(() => modal.classList.remove('opacity-0'), 10);
-}
+};
 
-function closeNdaModal() {
+window.closeNdaModal = function() {
     const modal = document.getElementById('ndaModal');
     modal.classList.add('opacity-0');
     setTimeout(() => modal.classList.add('hidden'), 300);
-}
+};
 
-function submitNda(e) {
+window.submitNda = function(e) {
     e.preventDefault();
-    const email = document.getElementById('ndaEmail').value;
-    
-    // Simular proceso de firma digital y apertura de Secure Data Room
     document.getElementById('ndaFormContainer').classList.add('hidden');
     document.getElementById('ndaSuccessContainer').classList.remove('hidden');
-}
+};
 
 // ==========================================
 // CHATBOT SIMULADO B2B
@@ -270,7 +330,7 @@ function submitNda(e) {
 let chatState = 0;
 let chatOpenFirstTime = true;
 
-function toggleChat() {
+window.toggleChat = function() {
     const win = document.getElementById('chat-window');
     if (win) {
         if (win.classList.contains('hidden')) {
@@ -285,7 +345,7 @@ function toggleChat() {
             setTimeout(() => win.classList.add('hidden'), 300);
         }
     }
-}
+};
 
 function botGreeting() {
     showTyping();
@@ -302,11 +362,11 @@ function botGreeting() {
     }, 800);
 }
 
-function handleChatEnter(e) {
+window.handleChatEnter = function(e) {
     if (e.key === 'Enter') sendUserMessage();
-}
+};
 
-function sendUserMessage() {
+window.sendUserMessage = function() {
     const input = document.getElementById('chat-input');
     if (!input) return;
     const text = input.value.trim();
@@ -314,7 +374,7 @@ function sendUserMessage() {
     appendMessage('user', text);
     input.value = ''; 
     processBotResponse(text);
-}
+};
 
 function appendMessage(sender, text) {
     const chatMsg = document.getElementById('chat-messages');

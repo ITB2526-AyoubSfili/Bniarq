@@ -1058,7 +1058,6 @@ window.logout = async function() {
 function watchAuthState() {
     onAuthStateChanged(auth, async (user) => {
         const authArea = document.getElementById('authArea');
-        const authAreaPerfiles = document.getElementById('authAreaPerfiles');
         
         if (user) {
             let userData = {};
@@ -1114,7 +1113,6 @@ function watchAuthState() {
             `;
             
             if (authArea) authArea.innerHTML = userHTML;
-            if (authAreaPerfiles) authAreaPerfiles.innerHTML = userHTML;
             
             const messagesFab = document.getElementById('messagesFab');
             if (messagesFab) messagesFab.classList.remove('hidden');
@@ -1134,7 +1132,6 @@ function watchAuthState() {
             `;
             
             if (authArea) authArea.innerHTML = loginHTML;
-            if (authAreaPerfiles) authAreaPerfiles.innerHTML = loginHTML;
             
             const messagesFab = document.getElementById('messagesFab');
             if (messagesFab) messagesFab.classList.add('hidden');
@@ -1155,7 +1152,7 @@ window.toggleAccountMenu = function() {
 
 document.addEventListener('click', (e) => {
     const menu = document.getElementById('accountMenu');
-    if (menu && !menu.classList.contains('hidden') && !e.target.closest('#authArea') && !e.target.closest('#authAreaPerfiles')) {
+    if (menu && !menu.classList.contains('hidden') && !e.target.closest('#authArea')) {
         menu.classList.add('hidden');
     }
 });

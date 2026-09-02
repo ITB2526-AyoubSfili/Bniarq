@@ -25,6 +25,15 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// ==========================================
+// CONFIGURACIÓN DE EMAILJS
+// ==========================================
+const EMAILJS_CONFIG = {
+    SERVICE_ID: 'service_sbrdv6n',
+    TEMPLATE_ID: 'template_6z1gbae',
+    PUBLIC_KEY: 'hm3t3ODtyq5Exj4Sw'
+};
+
 // Variables globales
 let allProfilesCache = [];
 let currentUserProfile = null;
@@ -33,9 +42,14 @@ let conversationsUnsub = null;
 let activeThreadUnsub = null;
 let activeConversationId = null;
 let activePeer = null;
-let current2FACode = null;
-let current2FAEmail = null;
+
+// Variables 2FA
+let pending2FAEmail = null;
+let pending2FAName = null;
+let pending2FACode = null;
+let pending2FATimestamp = null;
 let pending2FAResolve = null;
+let twoFATimeout = null;
 
 // ==========================================
 // PERFILES DEMO
@@ -284,7 +298,7 @@ function initDossierForm() {
             const content = document.getElementById('formContent');
             const success = document.getElementById('dossierSuccess');
 
-            btn.innerHTML = '<span class="loading-spinner w-5 h-5 align-middle"></span> <span class="ml-2">Procesando...</span>';
+            btn.innerHTML = '<span class="loading-spinner align-middle"></span> <span class="ml-2">Procesando...</span>';
             btn.classList.add('pointer-events-none', 'opacity-80');
 
             const link = document.createElement('a');
@@ -415,7 +429,7 @@ function initProfileRegistration() {
 // NDA MODAL
 // ==========================================
 function initNdaModal() {
-    // El modal ya está en el HTML
+    // Ya está en el HTML
 }
 
 window.openNdaModal = function(studioName) {
@@ -431,16 +445,20 @@ window.openNdaModal = function(studioName) {
     
     const modal = document.getElementById('ndaModal');
     if (modal) {
-        modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        modal.classList.remove('hidden-modal');
+        modal.classList.add('flex-center');
+        setTimeout(() => modal.style.opacity = '1', 10);
     }
 };
 
 window.closeNdaModal = function() {
     const modal = document.getElementById('ndaModal');
     if (modal) {
-        modal.classList.add('opacity-0');
-        setTimeout(() => modal.classList.add('hidden'), 300);
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden-modal');
+            modal.classList.remove('flex-center');
+        }, 300);
     }
 };
 
@@ -453,136 +471,119 @@ window.submitNda = function(e) {
 };
 
 // ==========================================
-// CHATBOT
+// 2FA COMPLETO CON EMAILJS
 // ==========================================
-let chatOpenFirstTime = true;
-
-window.toggleChat = function() {
-    const win = document.getElementById('chat-window');
-    if (win) {
-        if (win.classList.contains('hidden')) {
-            win.classList.remove('hidden');
-            setTimeout(() => win.classList.add('chat-open'), 10);
-            if (chatOpenFirstTime) {
-                chatOpenFirstTime = false;
-                setTimeout(botGreeting, 500);
-            }
-        } else {
-            win.classList.remove('chat-open');
-            setTimeout(() => win.classList.add('hidden'), 300);
-        }
-    }
-};
-
-function botGreeting() {
-    showTyping();
-    setTimeout(() => {
-        hideTyping();
-        appendMessage('bot', 'Hola. Estás en el entorno de soporte de Bniarq.');
-        setTimeout(() => {
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                appendMessage('bot', '¿Tienes alguna duda sobre cómo funciona nuestro proceso de validación o necesitas hablar con alguien del equipo?');
-            }, 1000);
-        }, 600);
-    }, 800);
-}
-
-window.handleChatEnter = function(e) {
-    if (e.key === 'Enter') sendUserMessage();
-};
-
-window.sendUserMessage = function() {
-    const input = document.getElementById('chat-input');
-    if (!input) return;
-    const text = input.value.trim();
-    if (!text) return;
-    appendMessage('user', text);
-    input.value = '';
-    processBotResponse(text);
-};
-
-function appendMessage(sender, text) {
-    const chatMsg = document.getElementById('chat-messages');
-    if (!chatMsg) return;
-    const msgDiv = document.createElement('div');
-    msgDiv.className = sender === 'user' ? 'chat-msg-user' : 'chat-msg-bot';
-    msgDiv.innerHTML = text;
-    chatMsg.appendChild(msgDiv);
-    chatMsg.scrollTop = chatMsg.scrollHeight;
-}
-
-function showTyping() {
-    const chatMsg = document.getElementById('chat-messages');
-    if (!chatMsg) return;
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'chat-typing';
-    typingDiv.id = 'typing-indicator';
-    typingDiv.innerHTML = '<span></span><span></span><span></span>';
-    chatMsg.appendChild(typingDiv);
-    chatMsg.scrollTop = chatMsg.scrollHeight;
-}
-
-function hideTyping() {
-    const indicator = document.getElementById('typing-indicator');
-    if (indicator) indicator.remove();
-}
-
-function processBotResponse(userText) {
-    showTyping();
-    setTimeout(() => {
-        hideTyping();
-        appendMessage('bot', 'Comprendo. Nuestro modelo B2B requiere una evaluación inicial de cada perfil.');
-        setTimeout(() => {
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                appendMessage('bot', 'Voy a transferir este chat a un consultor de nuestro equipo para que atienda tu consulta personalmente. ¿Te parece bien?');
-            }, 1200);
-        }, 600);
-    }, 1200);
-}
-
-// ==========================================
-// SISTEMA DE 2FA
-// ==========================================
-function init2FA() {}
-
 function generate2FACode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function send2FACodeByEmail(email, code) {
-    console.log(`📧 Código 2FA para ${email}: ${code}`);
-    alert(`🔐 Se ha enviado un código de verificación a ${email}\n\nCódigo: ${code}\n\n(En producción este código llegaría por email)`);
-    return true;
+async function send2FACodeByEmail(email, name, code) {
+    try {
+        if (typeof emailjs === 'undefined') {
+            await loadEmailJS();
+        }
+        
+        const templateParams = {
+            to_email: email,
+            name: name || email.split('@')[0] || 'Usuario',
+            code: code
+        };
+        
+        console.log('📧 Enviando email 2FA a:', email);
+        console.log('📧 Código:', code);
+        
+        const response = await emailjs.send(
+            EMAILJS_CONFIG.SERVICE_ID,
+            EMAILJS_CONFIG.TEMPLATE_ID,
+            templateParams,
+            EMAILJS_CONFIG.PUBLIC_KEY
+        );
+        
+        console.log('✅ Email 2FA enviado con éxito');
+        return true;
+    } catch (error) {
+        console.error('❌ Error al enviar email 2FA:', error);
+        alert(`🔐 Tu código de verificación es: ${code}\n\n(Revisa tu correo o la consola)`);
+        return false;
+    }
 }
 
-async function start2FAFlow(email) {
+function loadEmailJS() {
     return new Promise((resolve) => {
-        pending2FAResolve = resolve;
+        if (typeof emailjs !== 'undefined') {
+            emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+        script.onload = () => {
+            emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+            resolve();
+        };
+        script.onerror = () => {
+            console.warn('⚠️ No se pudo cargar EmailJS, usando modo offline');
+            resolve();
+        };
+        document.head.appendChild(script);
+    });
+}
+
+async function start2FAFlow(email, name) {
+    if (twoFATimeout) {
+        clearTimeout(twoFATimeout);
+        twoFATimeout = null;
+    }
+    
+    return new Promise((resolve) => {
         const code = generate2FACode();
-        current2FACode = code;
-        current2FAEmail = email;
-        send2FACodeByEmail(email, code);
+        pending2FACode = code;
+        pending2FAEmail = email;
+        pending2FAName = name || email.split('@')[0] || 'Usuario';
+        pending2FATimestamp = Date.now();
+        pending2FAResolve = resolve;
+        
+        send2FACodeByEmail(email, pending2FAName, code);
+        
         const modal = document.getElementById('2faModal');
         if (modal) {
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            modal.classList.remove('hidden-modal');
+            modal.classList.add('flex-center');
+            setTimeout(() => modal.style.opacity = '1', 10);
+            
             const codeInput = document.getElementById('2faCode');
             if (codeInput) {
                 codeInput.value = '';
-                codeInput.focus();
+                setTimeout(() => codeInput.focus(), 100);
             }
+            
             const errorEl = document.getElementById('2faError');
             if (errorEl) errorEl.classList.add('hidden');
+            
             const submitBtn = document.getElementById('2faSubmitBtn');
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Verificar y Acceder';
             }
+            
+            const subtitle = document.getElementById('2faSubtitle');
+            if (subtitle) {
+                subtitle.innerHTML = `
+                    Hemos enviado un código de 6 dígitos a<br>
+                    <strong style="color: #2563eb;">${email}</strong>
+                `;
+            }
         }
+        
+        twoFATimeout = setTimeout(() => {
+            pending2FACode = null;
+            if (pending2FAResolve) {
+                pending2FAResolve(false);
+                pending2FAResolve = null;
+            }
+            close2FAModal();
+            alert('⏰ El código de verificación ha expirado. Solicita uno nuevo.');
+        }, 300000);
     });
 }
 
@@ -597,7 +598,7 @@ window.verify2FACode = async function(e) {
     const enteredCode = codeInput.value.trim();
     
     if (enteredCode.length !== 6 || !/^\d{6}$/.test(enteredCode)) {
-        errorEl.textContent = 'El código debe tener 6 dígitos numéricos.';
+        errorEl.textContent = '❌ El código debe tener 6 dígitos numéricos.';
         errorEl.classList.remove('hidden');
         return;
     }
@@ -605,18 +606,41 @@ window.verify2FACode = async function(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Verificando...';
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (enteredCode === current2FACode) {
-        errorEl.classList.add('hidden');
-        close2FAModal();
-        if (pending2FAResolve) {
-            pending2FAResolve(true);
-            pending2FAResolve = null;
+    try {
+        if (pending2FATimestamp && (Date.now() - pending2FATimestamp) > 300000) {
+            throw new Error('⏰ El código ha expirado. Solicita uno nuevo.');
         }
-        loadProfilesFromFirebase();
-    } else {
-        errorEl.textContent = 'Código incorrecto. Por favor, inténtalo de nuevo.';
+        
+        if (enteredCode === pending2FACode) {
+            errorEl.classList.add('hidden');
+            
+            if (twoFATimeout) {
+                clearTimeout(twoFATimeout);
+                twoFATimeout = null;
+            }
+            
+            close2FAModal();
+            sessionStorage.setItem('2fa_verified', 'true');
+            
+            if (pending2FAResolve) {
+                pending2FAResolve(true);
+                pending2FAResolve = null;
+            }
+            
+            alert('✅ ¡Verificación 2FA completada con éxito!');
+            loadProfilesFromFirebase();
+            
+        } else {
+            errorEl.textContent = '❌ Código incorrecto. Inténtalo de nuevo.';
+            errorEl.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Verificar y Acceder';
+            codeInput.value = '';
+            codeInput.focus();
+        }
+    } catch (error) {
+        console.error('Error verificando 2FA:', error);
+        errorEl.textContent = error.message || '❌ Error al verificar el código.';
         errorEl.classList.remove('hidden');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Verificar y Acceder';
@@ -628,23 +652,37 @@ window.verify2FACode = async function(e) {
 window.close2FAModal = function() {
     const modal = document.getElementById('2faModal');
     if (modal) {
-        modal.classList.add('opacity-0');
-        setTimeout(() => modal.classList.add('hidden'), 300);
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden-modal');
+            modal.classList.remove('flex-center');
+        }, 300);
     }
+    
+    if (twoFATimeout) {
+        clearTimeout(twoFATimeout);
+        twoFATimeout = null;
+    }
+    
     if (pending2FAResolve) {
         pending2FAResolve(false);
         pending2FAResolve = null;
     }
+    
+    pending2FACode = null;
 };
 
 window.resend2FACode = function() {
-    if (current2FAEmail) {
+    if (pending2FAEmail) {
         const newCode = generate2FACode();
-        current2FACode = newCode;
-        send2FACodeByEmail(current2FAEmail, newCode);
+        pending2FACode = newCode;
+        pending2FATimestamp = Date.now();
+        
+        send2FACodeByEmail(pending2FAEmail, pending2FAName, newCode);
+        
         const errorEl = document.getElementById('2faError');
         if (errorEl) {
-            errorEl.textContent = 'Nuevo código enviado. Revisa tu correo.';
+            errorEl.textContent = '✅ Nuevo código enviado. Revisa tu correo.';
             errorEl.classList.remove('hidden');
             errorEl.classList.add('text-emerald-400');
             errorEl.classList.remove('text-red-400');
@@ -655,8 +693,141 @@ window.resend2FACode = function() {
     }
 };
 
+function init2FA() {
+    loadEmailJS();
+    console.log('🔐 2FA inicializado con EmailJS');
+}
+
 // ==========================================
-// AUTENTICACIÓN COMPLETA
+// CHATBOT
+// ==========================================
+let chatOpenFirstTime = true;
+let chatStep = 0;
+let isBotResponding = false;
+
+window.toggleChat = function() {
+    const win = document.getElementById('chat-window');
+    if (!win) return;
+    
+    if (win.classList.contains('hidden')) {
+        win.classList.remove('hidden');
+        setTimeout(() => win.classList.add('chat-open'), 10);
+        
+        if (chatOpenFirstTime) {
+            chatOpenFirstTime = false;
+            chatStep = 0;
+            const messages = document.getElementById('chat-messages');
+            if (messages) messages.innerHTML = '';
+            setTimeout(botGreeting, 500);
+        }
+    } else {
+        win.classList.remove('chat-open');
+        setTimeout(() => win.classList.add('hidden'), 300);
+    }
+};
+
+function botGreeting() {
+    isBotResponding = true;
+    showTyping();
+    setTimeout(() => {
+        hideTyping();
+        appendMessage('bot', '👋 Hola, soy el asistente de Bniarq.');
+        setTimeout(() => {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                appendMessage('bot', '¿Tienes alguna duda sobre nuestra plataforma?');
+                isBotResponding = false;
+                chatStep = 0;
+            }, 800);
+        }, 600);
+    }, 800);
+}
+
+function appendMessage(sender, text) {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = sender === 'user' ? 'chat-msg-user' : 'chat-msg-bot';
+    msgDiv.innerHTML = text;
+    container.appendChild(msgDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    hideTyping();
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-typing';
+    typingDiv.id = 'typing-indicator';
+    typingDiv.innerHTML = '<span></span><span></span><span></span>';
+    container.appendChild(typingDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideTyping() {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) indicator.remove();
+}
+
+window.sendUserMessage = function() {
+    const input = document.getElementById('chat-input');
+    const btn = document.getElementById('chatSendBtn');
+    
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    
+    if (isBotResponding) return;
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '...';
+    }
+    
+    appendMessage('user', text);
+    input.value = '';
+    processUserMessage(text, btn);
+};
+
+function processUserMessage(userText, btn) {
+    if (isBotResponding) return;
+    isBotResponding = true;
+    chatStep++;
+    
+    showTyping();
+    
+    setTimeout(() => {
+        hideTyping();
+        
+        let response = '';
+        
+        if (chatStep === 1) {
+            response = '📌 Gracias por tu mensaje. Nuestro equipo de soporte revisa cada consulta con atención.';
+        } else if (chatStep === 2) {
+            response = '🔄 ¿Te gustaría que un asesor se ponga en contacto contigo?';
+        } else if (chatStep === 3) {
+            response = '✅ Perfecto. Puedes escribirnos a <strong>soporte@bniarq.com</strong> o dejarnos tu email aquí y te contactaremos.';
+            chatStep = 0;
+        } else {
+            response = '📞 Si necesitas ayuda adicional, escríbenos a <strong>soporte@bniarq.com</strong>';
+            chatStep = 0;
+        }
+        
+        appendMessage('bot', response);
+        isBotResponding = false;
+        
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Enviar';
+        }
+    }, 1200);
+}
+
+// ==========================================
+// AUTENTICACIÓN
 // ==========================================
 window.openAuthModal = function(mode) {
     authMode = mode || 'login';
@@ -665,15 +836,19 @@ window.openAuthModal = function(mode) {
     if (!modal) return;
     const errorEl = document.getElementById('authError');
     if (errorEl) errorEl.classList.add('hidden');
-    modal.classList.remove('hidden');
-    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    modal.classList.remove('hidden-modal');
+    modal.classList.add('flex-center');
+    setTimeout(() => modal.style.opacity = '1', 10);
 };
 
 window.closeAuthModal = function() {
     const modal = document.getElementById('authModal');
     if (!modal) return;
-    modal.classList.add('opacity-0');
-    setTimeout(() => modal.classList.add('hidden'), 300);
+    modal.style.opacity = '0';
+    setTimeout(() => {
+        modal.classList.add('hidden-modal');
+        modal.classList.remove('flex-center');
+    }, 300);
 };
 
 window.switchAuthMode = function() {
@@ -688,46 +863,27 @@ function applyAuthMode() {
     const switchText = document.getElementById('authSwitchText');
     const switchBtn = document.getElementById('authSwitchBtn');
     
-    const nameField = document.getElementById('authNameField');
-    const apellidoField = document.getElementById('authApellidoField');
-    const fechaNacField = document.getElementById('authFechaNacField');
-    const telefonoField = document.getElementById('authTelefonoField');
-    const empresaField = document.getElementById('authEmpresaField');
-    const cargoField = document.getElementById('authCargoField');
-    const confirmPasswordField = document.getElementById('authConfirmPasswordField');
-    const terminosField = document.getElementById('authTerminosField');
-
-    if (authMode === 'login') {
-        if (title) title.textContent = 'Iniciar sesión';
-        if (subtitle) subtitle.textContent = 'Accede a tu cuenta Bniarq para publicar tu perfil y enviar mensajes.';
-        if (submitBtn) submitBtn.textContent = 'Iniciar sesión';
-        if (switchText) switchText.textContent = '¿No tienes cuenta?';
-        if (switchBtn) switchBtn.textContent = 'Regístrate';
-        
-        if (nameField) nameField.classList.add('hidden');
-        if (apellidoField) apellidoField.classList.add('hidden');
-        if (fechaNacField) fechaNacField.classList.add('hidden');
-        if (telefonoField) telefonoField.classList.add('hidden');
-        if (empresaField) empresaField.classList.add('hidden');
-        if (cargoField) cargoField.classList.add('hidden');
-        if (confirmPasswordField) confirmPasswordField.classList.add('hidden');
-        if (terminosField) terminosField.classList.add('hidden');
-    } else {
-        if (title) title.textContent = 'Crear cuenta profesional';
-        if (subtitle) subtitle.textContent = 'Completa todos los datos para unirte a la red Bniarq.';
-        if (submitBtn) submitBtn.textContent = 'Crear cuenta';
-        if (switchText) switchText.textContent = '¿Ya tienes cuenta?';
-        if (switchBtn) switchBtn.textContent = 'Inicia sesión';
-        
-        if (nameField) nameField.classList.remove('hidden');
-        if (apellidoField) apellidoField.classList.remove('hidden');
-        if (fechaNacField) fechaNacField.classList.remove('hidden');
-        if (telefonoField) telefonoField.classList.remove('hidden');
-        if (empresaField) empresaField.classList.remove('hidden');
-        if (cargoField) cargoField.classList.remove('hidden');
-        if (confirmPasswordField) confirmPasswordField.classList.remove('hidden');
-        if (terminosField) terminosField.classList.remove('hidden');
-    }
+    const fields = [
+        'authNameField', 'authApellidoField', 'authFechaNacField',
+        'authTelefonoField', 'authEmpresaField', 'authCargoField',
+        'authConfirmPasswordField', 'authTerminosField'
+    ];
+    
+    const isLogin = authMode === 'login';
+    
+    if (title) title.textContent = isLogin ? 'Iniciar sesión' : 'Crear cuenta profesional';
+    if (subtitle) subtitle.textContent = isLogin ? 'Accede a tu cuenta Bniarq' : 'Completa todos los datos para unirte';
+    if (submitBtn) submitBtn.textContent = isLogin ? 'Iniciar sesión' : 'Crear cuenta';
+    if (switchText) switchText.textContent = isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?';
+    if (switchBtn) switchBtn.textContent = isLogin ? 'Regístrate' : 'Inicia sesión';
+    
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            if (isLogin) el.classList.add('hidden');
+            else el.classList.remove('hidden');
+        }
+    });
 }
 
 function showAuthError(message) {
@@ -735,21 +891,18 @@ function showAuthError(message) {
     if (!err) return;
     err.textContent = message;
     err.classList.remove('hidden');
-    err.classList.remove('text-yellow-400');
-    err.classList.add('text-red-400');
 }
 
 function translateAuthError(code) {
     const map = {
-        'auth/email-already-in-use': 'Este correo ya está registrado. Inicia sesión o usa "¿Olvidaste tu contraseña?".',
+        'auth/email-already-in-use': 'Este correo ya está registrado. Inicia sesión.',
         'auth/invalid-email': 'El correo no es válido.',
         'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
         'auth/user-not-found': 'No existe ninguna cuenta con ese correo.',
         'auth/wrong-password': 'Contraseña incorrecta.',
         'auth/invalid-credential': 'Correo o contraseña incorrectos.',
         'auth/popup-closed-by-user': 'Has cerrado la ventana antes de completar el inicio de sesión.',
-        'auth/operation-not-allowed': 'Este proveedor de acceso todavía no está activado en el panel de Firebase.',
-        'auth/too-many-requests': 'Demasiados intentos. Espera un momento y vuelve a intentarlo.'
+        'auth/too-many-requests': 'Demasiados intentos. Espera un momento.'
     };
     return map[code] || 'Ha ocurrido un error. Inténtalo de nuevo.';
 }
@@ -839,8 +992,23 @@ function initAuthForm() {
                     }
                 }
             } else {
-                // MODO LOGIN
                 await signInWithEmailAndPassword(auth, email, password);
+                
+                const user = auth.currentUser;
+                if (user) {
+                    const userDoc = await getDoc(doc(db, 'usuarios', user.uid));
+                    const userData = userDoc.exists() ? userDoc.data() : {};
+                    
+                    if (userData.twoFAEnabled === true) {
+                        const verified = await start2FAFlow(user.email, userData.name);
+                        if (!verified) {
+                            await signOut(auth);
+                            showAuthError('❌ Verificación 2FA cancelada.');
+                            return;
+                        }
+                    }
+                }
+                
                 closeAuthModal();
                 form.reset();
                 loadProfilesFromFirebase();
@@ -1036,12 +1204,34 @@ function initProfileEditor() {
             if (!apellido) { if (errorEl) { errorEl.textContent = 'Los apellidos son obligatorios.'; errorEl.classList.remove('hidden'); } throw new Error('Apellidos requeridos'); }
             if (!email) { if (errorEl) { errorEl.textContent = 'El email es obligatorio.'; errorEl.classList.remove('hidden'); } throw new Error('Email requerido'); }
 
-            // Actualizar nombre en Firebase Auth
             if (name !== user.displayName) {
                 await updateProfile(user, { displayName: `${name} ${apellido}` });
             }
 
-            // Actualizar datos en Firestore
+            // ACTUALIZAR 2FA
+            const current2FA = currentUserProfile?.twoFAEnabled || false;
+            if (twoFAEnabled !== current2FA) {
+                if (twoFAEnabled) {
+                    const verified = await start2FAFlow(user.email, name);
+                    if (verified) {
+                        await updateDoc(doc(db, 'usuarios', user.uid), {
+                            twoFAEnabled: true
+                        });
+                        currentUserProfile.twoFAEnabled = true;
+                        alert('✅ 2FA activado correctamente.');
+                    } else {
+                        document.getElementById('edit2FA').checked = false;
+                        throw new Error('No se pudo activar 2FA');
+                    }
+                } else {
+                    await updateDoc(doc(db, 'usuarios', user.uid), {
+                        twoFAEnabled: false
+                    });
+                    currentUserProfile.twoFAEnabled = false;
+                    alert('✅ 2FA desactivado correctamente.');
+                }
+            }
+
             await updateDoc(doc(db, 'usuarios', user.uid), {
                 name: name,
                 apellido: apellido,
@@ -1049,11 +1239,9 @@ function initProfileEditor() {
                 empresa: empresa,
                 cargo: cargo,
                 fechaNacimiento: fechaNac,
-                twoFAEnabled: twoFAEnabled,
                 updatedAt: serverTimestamp()
             });
 
-            // Actualizar currentUserProfile
             if (currentUserProfile) {
                 currentUserProfile.name = name;
                 currentUserProfile.apellido = apellido;
@@ -1062,7 +1250,6 @@ function initProfileEditor() {
                 currentUserProfile.empresa = empresa;
                 currentUserProfile.cargo = cargo;
                 currentUserProfile.fechaNacimiento = fechaNac;
-                currentUserProfile.twoFAEnabled = twoFAEnabled;
             }
 
             if (successEl) {
@@ -1070,7 +1257,6 @@ function initProfileEditor() {
                 successEl.classList.remove('hidden');
             }
             
-            // Recargar el menú de usuario
             watchAuthState();
             
             setTimeout(() => {
@@ -1096,40 +1282,33 @@ window.openProfileEditor = function() {
         return;
     }
 
-    const nameInput = document.getElementById('editName');
-    const apellidoInput = document.getElementById('editApellido');
-    const emailInput = document.getElementById('editEmail');
-    const telefonoInput = document.getElementById('editTelefono');
-    const empresaInput = document.getElementById('editEmpresa');
-    const cargoInput = document.getElementById('editCargo');
-    const fechaNacInput = document.getElementById('editFechaNac');
-    const twoFAInput = document.getElementById('edit2FA');
-    const errorEl = document.getElementById('editProfileError');
-    const successEl = document.getElementById('editProfileSuccess');
-
-    if (nameInput) nameInput.value = currentUserProfile.name || '';
-    if (apellidoInput) apellidoInput.value = currentUserProfile.apellido || '';
-    if (emailInput) emailInput.value = currentUserProfile.email || '';
-    if (telefonoInput) telefonoInput.value = currentUserProfile.telefono || '';
-    if (empresaInput) empresaInput.value = currentUserProfile.empresa || '';
-    if (cargoInput) cargoInput.value = currentUserProfile.cargo || '';
-    if (fechaNacInput) fechaNacInput.value = currentUserProfile.fechaNacimiento || '';
-    if (twoFAInput) twoFAInput.checked = currentUserProfile.twoFAEnabled || false;
-    if (errorEl) errorEl.classList.add('hidden');
-    if (successEl) successEl.classList.add('hidden');
+    document.getElementById('editName').value = currentUserProfile.name || '';
+    document.getElementById('editApellido').value = currentUserProfile.apellido || '';
+    document.getElementById('editEmail').value = currentUserProfile.email || '';
+    document.getElementById('editTelefono').value = currentUserProfile.telefono || '';
+    document.getElementById('editEmpresa').value = currentUserProfile.empresa || '';
+    document.getElementById('editCargo').value = currentUserProfile.cargo || '';
+    document.getElementById('editFechaNac').value = currentUserProfile.fechaNacimiento || '';
+    document.getElementById('edit2FA').checked = currentUserProfile.twoFAEnabled || false;
+    document.getElementById('editProfileError').classList.add('hidden');
+    document.getElementById('editProfileSuccess').classList.add('hidden');
 
     const modal = document.getElementById('profileEditorModal');
     if (modal) {
-        modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        modal.classList.remove('hidden-modal');
+        modal.classList.add('flex-center');
+        setTimeout(() => modal.style.opacity = '1', 10);
     }
 };
 
 window.closeProfileEditor = function() {
     const modal = document.getElementById('profileEditorModal');
     if (modal) {
-        modal.classList.add('opacity-0');
-        setTimeout(() => modal.classList.add('hidden'), 300);
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden-modal');
+            modal.classList.remove('flex-center');
+        }, 300);
     }
 };
 
@@ -1171,7 +1350,7 @@ window.changePassword = async function() {
 };
 
 // ==========================================
-// MENSAJERÍA REAL (CORREGIDA)
+// MENSAJERÍA
 // ==========================================
 function conversationIdFor(uidA, uidB) {
     return [uidA, uidB].sort().join('_');
@@ -1179,7 +1358,7 @@ function conversationIdFor(uidA, uidB) {
 
 window.startConversation = async function(peer) {
     if (!auth.currentUser) {
-        alert('Inicia sesión para poder enviar mensajes a otros perfiles.');
+        alert('Inicia sesión para poder enviar mensajes.');
         openAuthModal('login');
         return;
     }
@@ -1234,7 +1413,6 @@ window.toggleInbox = function() {
 function watchConversations() {
     if (conversationsUnsub) conversationsUnsub();
     
-    // Usamos la consulta sin orderBy para evitar problemas de índice
     const q = query(
         collection(db, 'conversations'),
         where('participants', 'array-contains', auth.currentUser.uid)
@@ -1245,7 +1423,6 @@ function watchConversations() {
         snapshot.forEach(doc => {
             docs.push({ id: doc.id, ...doc.data() });
         });
-        // Ordenar manualmente en el cliente
         docs.sort((a, b) => {
             const aTime = a.lastMessageAt?.toMillis?.() || 0;
             const bTime = b.lastMessageAt?.toMillis?.() || 0;
@@ -1254,13 +1431,6 @@ function watchConversations() {
         renderConversationsList(docs);
     }, (error) => {
         console.error('Error escuchando conversaciones:', error);
-        // Si el error es por índice, mostrar mensaje amigable
-        if (error.code === 'failed-precondition') {
-            const list = document.getElementById('conversationsList');
-            if (list) {
-                list.innerHTML = `<p class="text-xs text-brand-muted p-4">Configurando mensajería... Por favor, espera un momento.</p>`;
-            }
-        }
     });
 }
 
@@ -1269,7 +1439,7 @@ function renderConversationsList(docs) {
     if (!list) return;
 
     if (!docs || docs.length === 0) {
-        list.innerHTML = '<p class="text-xs text-brand-muted p-4">Aún no tienes conversaciones. Contacta con un perfil desde el directorio para empezar a chatear.</p>';
+        list.innerHTML = '<p class="text-xs text-brand-muted p-4 text-center">Aún no tienes conversaciones.</p>';
         return;
     }
 
@@ -1306,8 +1476,8 @@ function openThread(convId, peer) {
     const threadMessages = document.getElementById('threadMessages');
 
     if (!inboxListView || !threadView || !threadPeerName || !threadMessages) {
-        console.error('Elementos de mensajería no encontrados en la página');
-        alert('La ventana de mensajería no está disponible en esta página.');
+        console.error('Elementos de mensajería no encontrados');
+        alert('La ventana de mensajería no está disponible.');
         return;
     }
 
@@ -1332,7 +1502,7 @@ function renderThreadMessages(snapshot) {
     container.innerHTML = '';
 
     if (snapshot.empty) {
-        container.innerHTML = '<p class="text-xs text-brand-muted text-center">Escribe el primer mensaje de la conversación.</p>';
+        container.innerHTML = '<p class="text-xs text-brand-muted text-center">Escribe el primer mensaje.</p>';
         return;
     }
 
@@ -1371,10 +1541,6 @@ function backToInboxView() {
     activePeer = null;
 }
 
-window.handleThreadEnter = function(e) {
-    if (e.key === 'Enter') sendThreadMessage();
-};
-
 window.sendThreadMessage = async function() {
     const input = document.getElementById('threadInput');
     if (!input || !activeConversationId) return;
@@ -1394,7 +1560,7 @@ window.sendThreadMessage = async function() {
         });
     } catch (error) {
         console.error('Error al enviar el mensaje:', error);
-        alert('No se pudo enviar el mensaje. Revisa tu conexión o las reglas de Firestore.');
+        alert('No se pudo enviar el mensaje.');
     }
 };
 

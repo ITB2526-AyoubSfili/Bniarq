@@ -1,8 +1,6 @@
-// Importar funciones de Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Tu configuración oficial de Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBYsGex2nRwItwWIqKZhx3UDBOJo-OwR9s",
     authDomain: "bniarqdatabase.firebaseapp.com",
@@ -13,7 +11,6 @@ const firebaseConfig = {
     measurementId: "G-00SC5P9160"
 };
 
-// Inicializar Firebase y Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -26,9 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initNdaModal();
 });
 
-// ==========================================
-// ANIMACIONES SCROLL
-// ==========================================
 function initScrollAnimations() {
     const reveals = document.querySelectorAll('.reveal');
     const observer = new IntersectionObserver((entries) => {
@@ -47,9 +41,6 @@ function initScrollAnimations() {
     });
 }
 
-// ==========================================
-// FORMULARIO DE CONTACTO (DOSSIER PDF)
-// ==========================================
 function initDossierForm() {
     const form = document.getElementById('dossierForm');
     const FORMSPREE_URL = "https://formspree.io/f/xaeyejkn"; 
@@ -93,9 +84,6 @@ function initDossierForm() {
     }
 }
 
-// ==========================================
-// GESTIÓN DE PERFILES EN LA NUBE (FIREBASE FIRESTORE)
-// ==========================================
 let allProfilesCache = [];
 
 async function loadProfilesFromFirebase() {
@@ -110,7 +98,6 @@ async function loadProfilesFromFirebase() {
             allProfilesCache.push(doc.data());
         });
 
-        // Si la base de datos está vacía, añadimos unos demos iniciales de ejemplo
         if (allProfilesCache.length === 0) {
             allProfilesCache = [
                 { 
@@ -166,12 +153,20 @@ function renderProfiles(profiles) {
                     <i data-lucide="cpu" class="w-4 h-4"></i> ${p.software}
                 </div>
             </div>
-            <button onclick="openNdaModal('${p.name.replace(/'/g, "\\'")}')" class="w-full bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition">
+            <button class="btn-connect w-full bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition" data-studio="${p.name.replace(/"/g, '&quot;')}">
                 Conectar / Enviar NDA
             </button>
         `;
         grid.appendChild(card);
     });
+
+    // Asignar eventos de clic de forma segura para los botones generados
+    document.querySelectorAll('.btn-connect').forEach(button => {
+        button.addEventListener('click', () => {
+            openNdaModal(button.getAttribute('data-studio'));
+        });
+    });
+
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
@@ -182,33 +177,48 @@ function initProfileRegistration() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.textContent = "Guardando en la nube...";
+        submitBtn.textContent = "Procesando imagen y guardando...";
         submitBtn.disabled = true;
 
-        const newProfile = {
-            name: document.getElementById('pName').value,
-            role: document.getElementById('pRole').value,
-            location: document.getElementById('pLocation').value,
-            software: document.getElementById('pSoftware').value,
-            photo: document.getElementById('pPhoto').value,
-            createdAt: new Date().toISOString()
+        const fileInput = document.getElementById('pPhotoFile');
+        let photoData = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=400&auto=format&fit=crop"; 
+
+        const saveProfileToFirestore = async (finalPhotoUrl) => {
+            const newProfile = {
+                name: document.getElementById('pName').value,
+                role: document.getElementById('pRole').value,
+                location: document.getElementById('pLocation').value,
+                software: document.getElementById('pSoftware').value,
+                photo: finalPhotoUrl,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await addDoc(collection(db, "perfiles"), newProfile);
+                form.reset();
+                submitBtn.textContent = "Publicar Perfil en la Red";
+                submitBtn.disabled = false;
+                
+                alert('¡Perfil y foto guardados en la nube con éxito!');
+                loadProfilesFromFirebase(); 
+                document.getElementById('directorio').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error("Error al guardar en Firebase: ", error);
+                alert("Hubo un error al guardar el perfil.");
+                submitBtn.textContent = "Publicar Perfil en la Red";
+                submitBtn.disabled = false;
+            }
         };
 
-        try {
-            await addDoc(collection(db, "perfiles"), newProfile);
-            
-            form.reset();
-            submitBtn.textContent = "Publicar Perfil en la Red";
-            submitBtn.disabled = false;
-            
-            alert('¡Perfil guardado en la nube con éxito! Ya es visible globalmente.');
-            loadProfilesFromFirebase(); 
-            document.getElementById('directorio').scrollIntoView({ behavior: 'smooth' });
-        } catch (error) {
-            console.error("Error al guardar en Firebase: ", error);
-            alert("Hubo un error al guardar el perfil.");
-            submitBtn.textContent = "Publicar Perfil en la Red";
-            submitBtn.disabled = false;
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                photoData = uploadEvent.target.result;
+                saveProfileToFirestore(photoData);
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            saveProfileToFirestore(photoData);
         }
     });
 }
@@ -227,16 +237,13 @@ function filterProfiles() {
     renderProfiles(filtered);
 }
 
-// ==========================================
-// SISTEMA REAL DE NDA Y CONEXIÓN (MODAL)
-// ==========================================
 function initNdaModal() {
     if (document.getElementById('ndaModal')) return;
 
     const modalHTML = `
         <div id="ndaModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
             <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
-                <button onclick="closeNdaModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white">
+                <button id="closeNdaBtn" class="absolute top-5 right-5 text-brand-muted hover:text-white cursor-pointer">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
                 <div id="ndaFormContainer">
@@ -252,7 +259,7 @@ function initNdaModal() {
                     <p class="text-xs text-brand-muted mb-6 leading-relaxed">
                         Para abrir una Secure Data Room y compartir documentación técnica, ambas partes deben suscribir el NDA digital bajo normativa corporativa Bniarq.
                     </p>
-                    <form id="ndaActionForm" onsubmit="submitNda(event)" class="space-y-4">
+                    <form id="ndaActionForm" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Tu Correo Corporativo</label>
                             <input type="email" id="ndaEmail" required placeholder="tu@empresa.com" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
@@ -268,7 +275,7 @@ function initNdaModal() {
                     </div>
                     <h4 class="text-xl font-bold text-white mb-2">¡NDA Firmado con Éxito!</h4>
                     <p class="text-xs text-brand-muted mb-6">Hemos enviado las credenciales cifradas de la sala segura a tu correo corporativo.</p>
-                    <button onclick="closeNdaModal()" class="w-full bg-brand-card border border-brand-border text-white text-xs font-bold py-3 rounded-xl hover:bg-brand-border transition">
+                    <button id="understoodNdaBtn" class="w-full bg-brand-card border border-brand-border text-white text-xs font-bold py-3 rounded-xl hover:bg-brand-border transition">
                         Entendido
                     </button>
                 </div>
@@ -276,10 +283,20 @@ function initNdaModal() {
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    document.getElementById('closeNdaBtn').addEventListener('click', closeNdaModal);
+    document.getElementById('understoodNdaBtn').addEventListener('click', closeNdaModal);
+    
+    document.getElementById('ndaActionForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        document.getElementById('ndaFormContainer').classList.add('hidden');
+        document.getElementById('ndaSuccessContainer').classList.remove('hidden');
+    });
+
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-window.openNdaModal = function(studioName) {
+function openNdaModal(studioName) {
     document.getElementById('targetStudioName').textContent = studioName;
     document.getElementById('ndaFormContainer').classList.remove('hidden');
     document.getElementById('ndaSuccessContainer').classList.add('hidden');
@@ -288,16 +305,10 @@ window.openNdaModal = function(studioName) {
     const modal = document.getElementById('ndaModal');
     modal.classList.remove('hidden');
     setTimeout(() => modal.classList.remove('opacity-0'), 10);
-};
+}
 
-window.closeNdaModal = function() {
+function closeNdaModal() {
     const modal = document.getElementById('ndaModal');
     modal.classList.add('opacity-0');
     setTimeout(() => modal.classList.add('hidden'), 300);
-};
-
-window.submitNda = function(e) {
-    e.preventDefault();
-    document.getElementById('ndaFormContainer').classList.add('hidden');
-    document.getElementById('ndaSuccessContainer').classList.remove('hidden');
-};
+}

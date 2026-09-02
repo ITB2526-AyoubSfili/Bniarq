@@ -18,6 +18,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let currentUser = null;
+let allProfilesCache = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -30,34 +31,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// AUTENTICACIÓN GOOGLE Y APPLE (FIREBASE AUTH)
+// AUTENTICACIÓN GOOGLE Y APPLE
 // ==========================================
 function initAuthObserver() {
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
-        const authContainer = document.getElementById('authContainer');
-        if (authContainer) {
-            if (user) {
-                authContainer.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100'}" class="w-8 h-8 rounded-full object-cover border border-blue-500/50">
-                        <span class="text-xs font-bold text-white hidden sm:inline">${user.displayName || user.email}</span>
-                        <button onclick="window.logoutUser()" class="bg-brand-card border border-brand-border text-xs px-3 py-1.5 rounded-lg hover:text-red-400 transition cursor-pointer">Cerrar Sesión</button>
-                    </div>
-                `;
-            } else {
-                authContainer.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <button onclick="window.loginWithGoogle()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5">
-                            Google
-                        </button>
-                        <button onclick="window.loginWithApple()" class="bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5">
-                            Apple
-                        </button>
-                    </div>
-                `;
+        const containers = document.querySelectorAll('#authContainer');
+        containers.forEach(authContainer => {
+            if (authContainer) {
+                if (user) {
+                    authContainer.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100'}" class="w-8 h-8 rounded-full object-cover border border-blue-500/50">
+                            <span class="text-xs font-bold text-white hidden sm:inline">${user.displayName || user.email}</span>
+                            <button onclick="window.logoutUser()" class="bg-brand-card border border-brand-border text-xs px-3 py-1.5 rounded-lg hover:text-red-400 transition cursor-pointer">Cerrar Sesión</button>
+                        </div>
+                    `;
+                } else {
+                    authContainer.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.loginWithGoogle()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition cursor-pointer">Google</button>
+                            <button onclick="window.loginWithApple()" class="bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold px-3 py-2 rounded-xl transition cursor-pointer">Apple</button>
+                        </div>
+                    `;
+                }
             }
-        }
+        });
     });
 }
 
@@ -67,7 +66,7 @@ window.loginWithGoogle = async function() {
         await signInWithPopup(auth, provider);
     } catch (error) {
         console.error("Error login Google:", error);
-        alert("No se pudo iniciar sesión con Google.");
+        alert("No se pudo iniciar sesión con Google. Asegúrate de tener el dominio autorizado en Firebase Console.");
     }
 };
 
@@ -79,7 +78,7 @@ window.loginWithApple = async function() {
         await signInWithPopup(auth, provider);
     } catch (error) {
         console.error("Error login Apple:", error);
-        alert("No se pudo iniciar sesión con Apple.");
+        alert("No se pudo iniciar sesión con Apple. Configura el proveedor Apple en Firebase Auth.");
     }
 };
 
@@ -159,7 +158,7 @@ function initDossierForm() {
 }
 
 // ==========================================
-// 70 PERFILES DEMO DISTRIBUIDOS POR ESPAÑA
+// 70+ PERFILES DEMO DISTRIBUIDOS POR ESPAÑA
 // ==========================================
 const pImg1 = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
 const pImg2 = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop";
@@ -241,8 +240,6 @@ const defaultProfiles = [
     { name: "Ayoub", role: "Diseño & Estructuras", location: "Barcelona", software: "Revit", photo: pImg1, cert: "Passivhaus" }
 ];
 
-let allProfilesCache = [];
-
 async function loadProfilesFromFirebase() {
     const grid = document.getElementById('profilesGrid');
     if (!grid) return;
@@ -254,20 +251,23 @@ async function loadProfilesFromFirebase() {
             allProfilesCache.push(doc.data());
         });
 
+        // Garantizar carga inmediata de respaldo local si Firebase está vacío o tarda en sincronizar la primera vez
         if (allProfilesCache.length === 0) {
-            const batchPromises = defaultProfiles.map(p => {
-                const newP = {...p, createdAt: new Date().toISOString()};
-                return addDoc(collection(db, "perfiles"), newP);
-            });
-            await Promise.all(batchPromises);
-            const newSnapshot = await getDocs(collection(db, "perfiles"));
-            allProfilesCache = [];
-            newSnapshot.forEach((doc) => allProfilesCache.push(doc.data()));
+            allProfilesCache = defaultProfiles;
+            // Inyección en segundo plano para no bloquear la UI
+            getDocs(collection(db, "perfiles")).then(async (snap) => {
+                if (snap.size === 0) {
+                    for (const p of defaultProfiles) {
+                        await addDoc(collection(db, "perfiles"), {...p, createdAt: new Date().toISOString()}).catch(()=>{});
+                    }
+                }
+            }).catch(()=>{});
         }
 
         renderProfiles(allProfilesCache);
     } catch (error) {
-        console.error("Error al cargar de Firebase, usando fallback local: ", error);
+        console.error("Error al conectar con Firestore, usando perfiles locales de respaldo: ", error);
+        allProfilesCache = defaultProfiles;
         renderProfiles(defaultProfiles);
     }
 }

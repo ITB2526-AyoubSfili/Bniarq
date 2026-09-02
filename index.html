@@ -226,7 +226,7 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- MENSAJERÍA FLOTANTE (UNIFICADA) -->
+    <!-- MENSAJERÍA FLOTANTE -->
     <!-- ========================================== -->
     <div id="messagesFab" class="hidden fixed bottom-24 right-6 z-50">
         <button onclick="toggleInbox()" class="relative bg-brand-card border border-brand-border hover:border-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105">
@@ -259,7 +259,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODALES UNIFICADOS (MISMOS IDs EN AMBAS PÁGINAS) -->
+    <!-- MODALES UNIFICADOS -->
     <!-- ========================================== -->
     
     <!-- MODAL DE AUTENTICACIÓN -->
@@ -345,7 +345,10 @@
                             <div class="w-11 h-6 bg-brand-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
-                    <button type="button" onclick="changePassword()" class="w-full mt-3 bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold py-2 rounded-xl transition">Cambiar contraseña</button>
+                    <button type="button" onclick="changePassword()" id="changePasswordBtn" class="w-full mt-3 bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold py-2 rounded-xl transition">
+                        Cambiar contraseña
+                    </button>
+                    <p id="passwordHelper" class="text-[10px] text-brand-muted mt-1 hidden"></p>
                 </div>
                 <p id="editProfileError" class="hidden text-xs text-red-400"></p>
                 <p id="editProfileSuccess" class="hidden text-xs text-emerald-400"></p>

@@ -23,10 +23,12 @@ body { background-color: #030303; }
 
 .loading-spinner {
     border: 2px solid rgba(255, 255, 255, 0.2);
-    border-left-color: #ffffff; 
+    border-left-color: #ffffff;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     display: inline-block;
+    width: 20px;
+    height: 20px;
 }
 @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -72,20 +74,21 @@ body { background-color: #030303; }
     align-self: flex-end;
     animation: fadeInMsg 0.3s ease;
 }
+
 .chat-typing {
-    display: flex; 
-    gap: 4px; 
+    display: flex;
+    gap: 4px;
     padding: 12px 14px;
-    background-color: #1a1a1a; 
+    background-color: #1a1a1a;
     border: 1px solid #262626;
-    border-radius: 12px 12px 12px 2px; 
+    border-radius: 12px 12px 12px 2px;
     width: fit-content;
 }
 .chat-typing span {
-    width: 6px; 
-    height: 6px; 
+    width: 6px;
+    height: 6px;
     background-color: #737373;
-    border-radius: 50%; 
+    border-radius: 50%;
     animation: typingDots 1.4s infinite ease-in-out both;
 }
 .chat-typing span:nth-child(1) { animation-delay: -0.32s; }
@@ -121,6 +124,7 @@ body { background-color: #030303; }
     box-shadow: 0 0 30px rgba(37, 99, 235, 0.05);
 }
 
+/* Toggle Switch */
 .peer:checked ~ .peer-checked\:bg-blue-600 {
     background-color: #2563eb;
 }
@@ -128,6 +132,7 @@ body { background-color: #030303; }
     transform: translateX(100%);
 }
 
+/* Utilidades para modales */
 .hidden-modal {
     display: none !important;
 }
@@ -135,4 +140,28 @@ body { background-color: #030303; }
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+}
+
+/* Ajustes responsive */
+@media (max-width: 640px) {
+    #chat-window, #inbox-window {
+        width: 90vw !important;
+        right: 5vw !important;
+        left: 5vw !important;
+        max-height: 80vh !important;
+    }
+    #chat-window {
+        bottom: 80px !important;
+    }
+    #inbox-window {
+        bottom: 80px !important;
+    }
+    #messagesFab {
+        bottom: 80px !important;
+        right: 20px !important;
+    }
+    .chat-msg-user, .chat-msg-bot {
+        max-width: 95% !important;
+        font-size: 0.8rem !important;
+    }
 }

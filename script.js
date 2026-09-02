@@ -51,6 +51,7 @@ let pending2FACode = null;
 let pending2FATimestamp = null;
 let pending2FAResolve = null;
 let twoFATimeout = null;
+let is2FAFlowActive = false;
 
 // ==========================================
 // PERFILES DEMO
@@ -504,7 +505,7 @@ async function send2FACodeByEmail(email, name, code) {
         return true;
     } catch (error) {
         console.error('❌ Error al enviar email 2FA:', error);
-        alert(`🔐 Tu código de verificación es: ${code}\n\n(Revisa tu correo o la consola)`);
+        alert(`🔐 Tu código de verificación es: ${code}\n\n(Revisa tu correo o usa este código)`);
         return false;
     }
 }
@@ -531,10 +532,14 @@ function loadEmailJS() {
 }
 
 async function start2FAFlow(email, name) {
+    console.log('🚀 Iniciando flujo 2FA para:', email);
+    
     if (twoFATimeout) {
         clearTimeout(twoFATimeout);
         twoFATimeout = null;
     }
+    
+    is2FAFlowActive = true;
     
     return new Promise((resolve) => {
         const code = generate2FACode();
@@ -550,12 +555,13 @@ async function start2FAFlow(email, name) {
         if (modal) {
             modal.classList.remove('hidden-modal');
             modal.classList.add('flex-center');
+            modal.style.opacity = '0';
             setTimeout(() => modal.style.opacity = '1', 10);
             
             const codeInput = document.getElementById('2faCode');
             if (codeInput) {
                 codeInput.value = '';
-                setTimeout(() => codeInput.focus(), 100);
+                setTimeout(() => codeInput.focus(), 300);
             }
             
             const errorEl = document.getElementById('2faError');
@@ -571,13 +577,20 @@ async function start2FAFlow(email, name) {
             if (subtitle) {
                 subtitle.innerHTML = `
                     Hemos enviado un código de 6 dígitos a<br>
-                    <strong style="color: #2563eb;">${email}</strong>
+                    <strong style="color: #2563eb;">${email}</strong><br>
+                    <span style="color: #a1a1aa; font-size: 11px;">(Revisa tu bandeja de entrada o spam)</span>
                 `;
             }
+        } else {
+            console.error('❌ Modal 2FA no encontrado en el DOM');
+            alert('⚠️ Error: No se pudo mostrar el modal de verificación.');
+            resolve(false);
+            return;
         }
         
         twoFATimeout = setTimeout(() => {
             pending2FACode = null;
+            is2FAFlowActive = false;
             if (pending2FAResolve) {
                 pending2FAResolve(false);
                 pending2FAResolve = null;
@@ -590,13 +603,20 @@ async function start2FAFlow(email, name) {
 
 window.verify2FACode = async function(e) {
     e.preventDefault();
+    console.log('🔐 Verificando código 2FA...');
+    
     const codeInput = document.getElementById('2faCode');
     const errorEl = document.getElementById('2faError');
     const submitBtn = document.getElementById('2faSubmitBtn');
     
-    if (!codeInput || !errorEl || !submitBtn) return;
+    if (!codeInput || !errorEl || !submitBtn) {
+        console.error('❌ Elementos del modal no encontrados');
+        return;
+    }
     
     const enteredCode = codeInput.value.trim();
+    console.log('📝 Código introducido:', enteredCode);
+    console.log('📝 Código esperado:', pending2FACode);
     
     if (enteredCode.length !== 6 || !/^\d{6}$/.test(enteredCode)) {
         errorEl.textContent = '❌ El código debe tener 6 dígitos numéricos.';
@@ -613,6 +633,7 @@ window.verify2FACode = async function(e) {
         }
         
         if (enteredCode === pending2FACode) {
+            console.log('✅ Código verificado correctamente');
             errorEl.classList.add('hidden');
             
             if (twoFATimeout) {
@@ -622,6 +643,7 @@ window.verify2FACode = async function(e) {
             
             close2FAModal();
             sessionStorage.setItem('2fa_verified', 'true');
+            is2FAFlowActive = false;
             
             if (pending2FAResolve) {
                 pending2FAResolve(true);
@@ -632,6 +654,7 @@ window.verify2FACode = async function(e) {
             loadProfilesFromFirebase();
             
         } else {
+            console.log('❌ Código incorrecto');
             errorEl.textContent = '❌ Código incorrecto. Inténtalo de nuevo.';
             errorEl.classList.remove('hidden');
             submitBtn.disabled = false;
@@ -671,9 +694,11 @@ window.close2FAModal = function() {
     }
     
     pending2FACode = null;
+    is2FAFlowActive = false;
 };
 
 window.resend2FACode = function() {
+    console.log('🔄 Reenviando código 2FA...');
     if (pending2FAEmail) {
         const newCode = generate2FACode();
         pending2FACode = newCode;
@@ -691,16 +716,30 @@ window.resend2FACode = function() {
                 errorEl.classList.add('hidden');
             }, 5000);
         }
+    } else {
+        console.warn('⚠️ No hay email pendiente para reenviar código');
+        const errorEl = document.getElementById('2faError');
+        if (errorEl) {
+            errorEl.textContent = '⚠️ No hay una solicitud de 2FA activa.';
+            errorEl.classList.remove('hidden');
+        }
     }
 };
 
 function init2FA() {
     loadEmailJS();
     console.log('🔐 2FA inicializado con EmailJS');
+    
+    const modal = document.getElementById('2faModal');
+    if (modal) {
+        console.log('✅ Modal 2FA encontrado en el DOM');
+    } else {
+        console.warn('⚠️ Modal 2FA NO encontrado en el DOM');
+    }
 }
 
 // ==========================================
-// CHATBOT
+// CHATBOT CON BOTONES INTERACTIVOS
 // ==========================================
 let chatOpenFirstTime = true;
 let chatStep = 0;
@@ -732,17 +771,140 @@ function botGreeting() {
     showTyping();
     setTimeout(() => {
         hideTyping();
-        appendMessage('bot', '👋 Hola, soy el asistente de Bniarq.');
+        appendMessage('bot', '👋 ¡Hola! Soy el asistente virtual de Bniarq.');
         setTimeout(() => {
             showTyping();
             setTimeout(() => {
                 hideTyping();
-                appendMessage('bot', '¿Tienes alguna duda sobre nuestra plataforma?');
-                isBotResponding = false;
-                chatStep = 0;
+                appendMessage('bot', '¿En qué puedo ayudarte hoy?');
+                setTimeout(() => {
+                    showOptionsButtons();
+                    isBotResponding = false;
+                }, 500);
             }, 800);
         }, 600);
     }, 800);
+}
+
+function showOptionsButtons() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    
+    // Eliminar opciones anteriores si existen
+    const oldOptions = document.getElementById('chat-options');
+    if (oldOptions) oldOptions.remove();
+    
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'flex flex-wrap gap-2 mt-2';
+    optionsDiv.id = 'chat-options';
+    
+    const options = [
+        { text: '📋 ¿Cómo publicar mi estudio?', value: 'publicar' },
+        { text: '🤝 ¿Cómo funciona la red?', value: 'red' },
+        { text: '🔐 Seguridad y 2FA', value: 'seguridad' },
+        { text: '📞 Contactar con soporte', value: 'soporte' }
+    ];
+    
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'chat-options-btn';
+        btn.textContent = opt.text;
+        btn.onclick = () => {
+            const options = document.getElementById('chat-options');
+            if (options) options.remove();
+            appendMessage('user', opt.text);
+            processOptionClick(opt.value);
+        };
+        optionsDiv.appendChild(btn);
+    });
+    
+    container.appendChild(optionsDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+function processOptionClick(option) {
+    if (isBotResponding) return;
+    isBotResponding = true;
+    
+    showTyping();
+    
+    setTimeout(() => {
+        hideTyping();
+        
+        let response = '';
+        
+        switch(option) {
+            case 'publicar':
+                response = `📋 **Publicar tu estudio en Bniarq es muy sencillo:**
+
+1️⃣ Inicia sesión en tu cuenta
+2️⃣ Ve a la sección "Unirme / Publicar"
+3️⃣ Completa el formulario con:
+   • Nombre de tu estudio
+   • Especialidad
+   • Ubicación
+   • Software que usas
+4️⃣ Sube una foto de perfil
+5️⃣ Haz clic en "Publicar Perfil"
+
+✅ ¡Y ya formas parte de la red!`;
+                break;
+                
+            case 'red':
+                response = `🤝 **La red Bniarq conecta profesionales del sector AEC:**
+
+• 🏗️ **Estudios de arquitectura**
+• 🔧 **Ingenierías** (estructuras, instalaciones)
+• 🌱 **Consultorías** (sostenibilidad, eficiencia)
+• 🏢 **Constructoras** y promotoras
+
+**¿Cómo funciona?**
+1. Los profesionales crean su perfil
+2. Pueden contactar con otros miembros
+3. Comparten proyectos y colaboran
+4. Gestionan acuerdos de confidencialidad (NDA)`;
+                break;
+                
+            case 'seguridad':
+                response = `🔐 **Seguridad en Bniarq**
+
+Implementamos múltiples capas de seguridad:
+
+• 🔑 **Autenticación segura** con Firebase
+• 📧 **2FA** (Autenticación de dos pasos) por email
+• 📄 **NDAs digitales** para proteger tu información
+• 🔒 **Datos cifrados** en Firestore
+• 👤 **Perfiles verificados**
+
+**¿Quieres activar el 2FA?**
+Ve a tu perfil → Editar perfil → Seguridad → Activa el switch de 2FA`;
+                break;
+                
+            case 'soporte':
+                response = `📞 **Contactar con soporte**
+
+Puedes contactar con nosotros de varias formas:
+
+✉️ **Email:** soporte@bniarq.com
+💬 **Chat:** Sigue esta conversación
+📱 **Teléfono:** +34 900 123 456
+
+**Horario de atención:**
+Lunes a Viernes: 9:00 - 18:00 (CET)`;
+                break;
+                
+            default:
+                response = '📌 No he entendido tu selección. ¿Puedes intentarlo de nuevo?';
+        }
+        
+        appendMessage('bot', response);
+        
+        // Volver a mostrar opciones después de la respuesta
+        setTimeout(() => {
+            showOptionsButtons();
+            isBotResponding = false;
+        }, 800);
+    }, 1200);
 }
 
 function appendMessage(sender, text) {
@@ -751,7 +913,7 @@ function appendMessage(sender, text) {
     
     const msgDiv = document.createElement('div');
     msgDiv.className = sender === 'user' ? 'chat-msg-user' : 'chat-msg-bot';
-    msgDiv.innerHTML = text;
+    msgDiv.innerHTML = text.replace(/\n/g, '<br>');
     container.appendChild(msgDiv);
     container.scrollTop = container.scrollHeight;
 }
@@ -783,6 +945,9 @@ window.sendUserMessage = function() {
     
     if (isBotResponding) return;
     
+    const options = document.getElementById('chat-options');
+    if (options) options.remove();
+    
     if (btn) {
         btn.disabled = true;
         btn.textContent = '...';
@@ -796,7 +961,6 @@ window.sendUserMessage = function() {
 function processUserMessage(userText, btn) {
     if (isBotResponding) return;
     isBotResponding = true;
-    chatStep++;
     
     showTyping();
     
@@ -804,21 +968,26 @@ function processUserMessage(userText, btn) {
         hideTyping();
         
         let response = '';
+        const lowerText = userText.toLowerCase();
         
-        if (chatStep === 1) {
-            response = '📌 Gracias por tu mensaje. Nuestro equipo de soporte revisa cada consulta con atención.';
-        } else if (chatStep === 2) {
-            response = '🔄 ¿Te gustaría que un asesor se ponga en contacto contigo?';
-        } else if (chatStep === 3) {
-            response = '✅ Perfecto. Puedes escribirnos a <strong>soporte@bniarq.com</strong> o dejarnos tu email aquí y te contactaremos.';
-            chatStep = 0;
+        if (lowerText.includes('publicar') || lowerText.includes('estudio') || lowerText.includes('registro')) {
+            response = '📋 Para publicar tu estudio, ve a la sección "Unirme / Publicar" y completa el formulario. ¿Necesitas ayuda con algún campo en concreto?';
+        } else if (lowerText.includes('2fa') || lowerText.includes('seguridad') || lowerText.includes('contraseña')) {
+            response = '🔐 Puedes activar el 2FA desde tu perfil. Ve a "Editar perfil" y activa el switch de 2FA. Recibirás un código por email para verificarlo.';
+        } else if (lowerText.includes('soporte') || lowerText.includes('ayuda') || lowerText.includes('contacto')) {
+            response = '📞 Puedes escribirnos a soporte@bniarq.com o llamarnos al +34 900 123 456. ¿Te ayudo con algo más?';
+        } else if (lowerText.includes('gracias') || lowerText.includes('vale') || lowerText.includes('ok')) {
+            response = '😊 ¡De nada! Estamos aquí para ayudarte. ¿Necesitas algo más?';
         } else {
-            response = '📞 Si necesitas ayuda adicional, escríbenos a <strong>soporte@bniarq.com</strong>';
-            chatStep = 0;
+            response = '📌 No estoy seguro de haber entendido. ¿Puedes elegir una de las opciones que te muestro?';
         }
         
         appendMessage('bot', response);
         isBotResponding = false;
+        
+        setTimeout(() => {
+            showOptionsButtons();
+        }, 600);
         
         if (btn) {
             btn.disabled = false;
@@ -1074,6 +1243,8 @@ function watchAuthState() {
             const displayName = userData.name || user.displayName || user.email?.split('@')[0] || 'Usuario';
             const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2563EB&color=fff`;
             
+            const providerId = user.providerData?.[0]?.providerId || 'password';
+            
             currentUserProfile = {
                 uid: user.uid,
                 name: displayName,
@@ -1085,11 +1256,10 @@ function watchAuthState() {
                 telefono: userData.telefono || '',
                 fechaNacimiento: userData.fechaNacimiento || '',
                 twoFAEnabled: userData.twoFAEnabled || false,
-                providerId: user.providerData?.[0]?.providerId || 'password'
+                providerId: providerId
             };
 
-            // Detectar si es usuario de Google para el botón de cambio de contraseña
-            const isGoogleUser = currentUserProfile.providerId === 'google.com';
+            const isGoogleUser = providerId === 'google.com';
             const changeBtn = document.getElementById('changePasswordBtn');
             const helper = document.getElementById('passwordHelper');
             
@@ -1116,7 +1286,7 @@ function watchAuthState() {
                             <p class="text-[10px] text-brand-muted truncate">${currentUserProfile.email}</p>
                             ${currentUserProfile.empresa ? `<p class="text-[10px] text-brand-muted">${currentUserProfile.empresa}</p>` : ''}
                             ${currentUserProfile.twoFAEnabled ? `<p class="text-[10px] text-emerald-400">🔒 2FA Activado</p>` : `<p class="text-[10px] text-brand-muted">🔓 2FA Desactivado</p>`}
-                            ${currentUserProfile.providerId === 'google.com' ? `<p class="text-[10px] text-blue-400">🔗 Google</p>` : ''}
+                            ${isGoogleUser ? `<p class="text-[10px] text-blue-400">🔗 Google</p>` : ''}
                         </div>
                         <button onclick="openProfileEditor(); toggleAccountMenu();" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-brand-border transition flex items-center gap-2">
                             <i data-lucide="user-cog" class="w-3.5 h-3.5"></i> Editar perfil
@@ -1230,7 +1400,6 @@ function initProfileEditor() {
             const current2FA = currentUserProfile?.twoFAEnabled || false;
             if (twoFAEnabled !== current2FA) {
                 if (twoFAEnabled) {
-                    // ACTIVAR 2FA - Enviar código de verificación
                     const verified = await start2FAFlow(user.email, name);
                     if (verified) {
                         await updateDoc(doc(db, 'usuarios', user.uid), {
@@ -1244,7 +1413,6 @@ function initProfileEditor() {
                         throw new Error('No se pudo activar 2FA. El código no fue verificado.');
                     }
                 } else {
-                    // DESACTIVAR 2FA - Confirmar con el usuario
                     const confirmDisable = confirm('⚠️ ¿Estás seguro de que quieres desactivar la autenticación en dos pasos?\n\nEsto reducirá la seguridad de tu cuenta.');
                     if (confirmDisable) {
                         await updateDoc(doc(db, 'usuarios', user.uid), {
@@ -1259,7 +1427,6 @@ function initProfileEditor() {
                 }
             }
 
-            // Actualizar resto de datos
             await updateDoc(doc(db, 'usuarios', user.uid), {
                 name: name,
                 apellido: apellido,
@@ -1321,7 +1488,6 @@ window.openProfileEditor = function() {
     document.getElementById('editProfileError').classList.add('hidden');
     document.getElementById('editProfileSuccess').classList.add('hidden');
 
-    // Actualizar botón de contraseña
     const isGoogleUser = currentUserProfile.providerId === 'google.com';
     const changeBtn = document.getElementById('changePasswordBtn');
     const helper = document.getElementById('passwordHelper');
@@ -1366,11 +1532,9 @@ window.changePassword = async function() {
         return;
     }
 
-    // Verificar si el usuario inició sesión con Google
     const providerId = currentUserProfile?.providerId || user.providerData?.[0]?.providerId;
 
     if (providerId === 'google.com') {
-        // USUARIO DE GOOGLE - Enviar email de recuperación
         const confirmReset = confirm(
             '🔑 Has iniciado sesión con Google.\n\n' +
             'No tienes una contraseña asociada a tu cuenta.\n\n' +
@@ -1389,7 +1553,6 @@ window.changePassword = async function() {
         return;
     }
 
-    // USUARIO NORMAL - Cambiar contraseña
     const currentPassword = prompt('🔐 Introduce tu contraseña actual:');
     if (currentPassword === null) return;
 
@@ -1406,7 +1569,6 @@ window.changePassword = async function() {
     }
 
     try {
-        // Reautenticar antes de cambiar contraseña
         const credential = EmailAuthProvider.credential(user.email, currentPassword);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPassword);

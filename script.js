@@ -27,11 +27,11 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ==========================================
-// CONFIGURACIÓN DE EMAILJS
+// CONFIGURACIÓN DE EMAILJS (ACTUALIZADA)
 // ==========================================
 const EMAILJS_CONFIG = {
     SERVICE_ID: 'service_sbrdv6n',
-    TEMPLATE_ID: 'template_6z1gbae',
+    TEMPLATE_ID: 'template_uob4f6p',  // ← ACTUALIZADO
     PUBLIC_KEY: 'hm3t3ODtyq5Exj4Sw'
 };
 
@@ -790,7 +790,6 @@ function showOptionsButtons() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
     
-    // Eliminar opciones anteriores si existen
     const oldOptions = document.getElementById('chat-options');
     if (oldOptions) oldOptions.remove();
     
@@ -899,7 +898,6 @@ Lunes a Viernes: 9:00 - 18:00 (CET)`;
         
         appendMessage('bot', response);
         
-        // Volver a mostrar opciones después de la respuesta
         setTimeout(() => {
             showOptionsButtons();
             isBotResponding = false;

@@ -177,6 +177,40 @@ function renderProfiles(profiles) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+// Función para comprimir imágenes antes de subir a Firebase y evitar cuelgues
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 400; 
+            const MAX_HEIGHT = 400;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height && width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+            } else if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Comprimir calidad al 70%
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback(dataUrl);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 function initProfileRegistration() {
     const form = document.getElementById('profileForm');
     if (!form) return;
@@ -185,7 +219,7 @@ function initProfileRegistration() {
         e.preventDefault();
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
-        submitBtn.textContent = "Guardando en la nube...";
+        submitBtn.textContent = "Procesando imagen y guardando...";
         submitBtn.disabled = true;
 
         const fileInput = document.getElementById('pPhotoFile');
@@ -218,21 +252,19 @@ function initProfileRegistration() {
             }
         };
 
-        // Si el usuario adjunta una foto desde su PC, la procesamos
+        // Si el usuario adjunta una foto desde su PC, la comprimimos primero
         if (fileInput && fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(uploadEvent) {
-                photoData = uploadEvent.target.result;
-                saveToFirestore(photoData);
-            };
-            reader.readAsDataURL(fileInput.files[0]);
+            compressImage(fileInput.files[0], (compressedImg) => {
+                saveToFirestore(compressedImg);
+            });
         } else {
             saveToFirestore(photoData);
         }
     });
 }
 
-function filterProfiles() {
+// Usamos window. para asegurar que el HTML en modo 'module' pueda ver la función
+window.filterProfiles = function() {
     const queryElement = document.getElementById('searchInput');
     if (!queryElement) return;
     const query = queryElement.value.toLowerCase();

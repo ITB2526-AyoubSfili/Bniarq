@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bniarq | Red de Arquitectos Global[cite: 1]</title>
-    
-    <!-- FAVICON CORPORATIVO SVG[cite: 1] -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%232563eb'/><text x='50' y='68' font-family='sans-serif' font-size='55' font-weight='bold' fill='white' text-anchor='middle'>B</text></svg>">
-    
-    <!-- Tailwind CSS (CDN)[cite: 1] -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -27,7 +23,6 @@
             }
         }
     </script>
-    <!-- Lucide Icons[cite: 1] -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -36,20 +31,21 @@
 </head>
 <body class="bg-brand-dark text-white selection:bg-blue-600 selection:text-white antialiased">
 
-    <!-- HEADER / NAVBAR -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-brand-dark/90 backdrop-blur-md border-b border-brand-border py-4 px-6 md:px-12 flex items-center justify-between">
         <a href="index.html" class="text-xl font-bold tracking-tighter text-white">bniarq<span class="text-blue-500">.</span></a>
-        <a href="index.html" class="bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold px-4 py-2 rounded-full transition">Volver al Inicio</a>
+        <div id="authContainer" class="flex items-center gap-2">
+            <button onclick="window.loginWithGoogle()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer">
+                Iniciar Sesión
+            </button>
+        </div>
     </nav>
 
-    <!-- DIRECTORIO DE PERFILES -->
     <main class="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto">
         <div class="mb-12 text-center">
-            <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Directorio Global</span>
+            <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Directorio Global España</span>
             <h1 class="text-3xl font-extrabold text-white tracking-tight">Red de Profesionales y Estudios (+70 Registrados)</h1>
         </div>
 
-        <!-- Buscador (Corregido con window.) -->
         <div class="max-w-md mx-auto mb-12">
             <div class="relative">
                 <i data-lucide="search" class="w-4 h-4 text-brand-muted absolute left-4 top-3.5"></i>
@@ -57,11 +53,9 @@
             </div>
         </div>
 
-        <!-- Grid de Perfiles sincronizados -->
         <div id="profilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </main>
 
-    <!-- SCRIPT PRINCIPAL (MÓDULO FIREBASE) -->
     <script type="module" src="script.js"></script>
 </body>
 </html>

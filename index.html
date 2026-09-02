@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bniarq | Plataforma Global para Arquitectura y Construcción</title>
+    <title>Bniarq | Plataforma Global para Arquitectura y Construcción[cite: 4]</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%232563eb'/><text x='50' y='68' font-family='sans-serif' font-size='55' font-weight='bold' fill='white' text-anchor='middle'>B</text></svg>">
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -68,13 +69,13 @@
         <div class="absolute inset-0 z-0 opacity-20 bg-[radial-gradient(#2563eb_1px,transparent_1px)] [background-size:32px_32px]"></div>
         <div class="max-w-4xl mx-auto z-10 reveal">
             <div class="inline-flex items-center gap-2 bg-brand-card border border-brand-border px-4 py-1.5 rounded-full text-xs text-brand-muted mb-6">
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Infraestructura Global Activa &bull; Firebase Cloud Sync
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Firebase Cloud Sync[cite: 4] &bull; +70 Estudios Activos
             </div>
             <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-                La plataforma profesional a prueba de todo para el <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">sector arquitectónico</span>.
+                Infraestructura B2B de colaboración para el <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">sector arquitectónico</span>[cite: 2, 4].
             </h1>
             <p class="text-sm md:text-base text-brand-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-                Conectamos estudios de arquitectura, ingenierías complejas y consultorías técnicas mediante directorios sincronizados en la nube en tiempo real y entornos de datos seguros cifrados (NDAs).
+                Directorio multicriterio sincronizado en tiempo real con mensajería P2P y Secure Data Rooms cifradas[cite: 2, 4].
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <a href="#directorio" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-2xl transition text-xs shadow-xl flex items-center justify-center gap-2">
@@ -87,31 +88,29 @@
         </div>
     </section>
 
-    <!-- DIRECTORIO DE ARQUITECTOS (Sincronizado con Firebase Cloud) -->
+    <!-- DIRECTORIO DE ARQUITECTOS -->
     <section id="directorio" class="py-24 px-6 md:px-12 border-t border-brand-border bg-brand-dark">
         <div class="max-w-7xl mx-auto reveal">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                 <div>
-                    <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Directorio Global en Tiempo Real</span>
+                    <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Directorio Global España</span>
                     <h2 class="text-3xl font-extrabold text-white tracking-tight">Estudios y Profesionales Validados</h2>
                 </div>
-                <!-- Buscador Dinámico -->
+                <!-- Buscador Dinámico Multicriterio -->
                 <div class="w-full md:w-80">
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-brand-muted absolute left-4 top-3.5"></i>
-                        <input type="text" id="searchInput" oninput="filterProfiles()" placeholder="Filtrar por nombre, ciudad, BIM..." class="w-full bg-brand-card border border-brand-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none transition">
+                        <input type="text" id="searchInput" oninput="window.filterProfiles()" placeholder="Filtrar ciudad, BIM, Passivhaus..." class="w-full bg-brand-card border border-brand-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none transition">
                     </div>
                 </div>
             </div>
 
-            <!-- Grid de Tarjetas (Se llena dinámicamente desde el script) -->
-            <div id="profilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Los perfiles se cargan automáticamente desde Firebase o localStorage -->
-            </div>
+            <!-- Grid de Tarjetas -->
+            <div id="profilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </section>
 
-    <!-- FORMULARIO DE REGISTRO DE NUEVOS PERFILES (Con Subida de Foto desde PC) -->
+    <!-- FORMULARIO DE REGISTRO (CON CERTIFICACIONES Y FOTO PC) -->
     <section id="registro" class="py-24 px-6 md:px-12 border-t border-brand-border bg-brand-card/50">
         <div class="max-w-xl mx-auto reveal">
             <div class="text-center mb-10">
@@ -122,7 +121,7 @@
             
             <form id="profileForm" class="bg-brand-card border border-brand-border p-8 rounded-3xl shadow-2xl space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Nombre del Estudio / Profesional</label>
+                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Nombre del Estudio</label>
                     <input type="text" id="pName" required placeholder="Ej. Aris Studio" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
                 </div>
                 <div>
@@ -130,12 +129,16 @@
                     <input type="text" id="pRole" required placeholder="Ej. Diseño Residencial & BIM" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Ubicación</label>
-                    <input type="text" id="pLocation" required placeholder="Ej. Barcelona, España" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
+                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Ciudad, España</label>
+                    <input type="text" id="pLocation" required placeholder="Ej. Barcelona" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Software / Stack Técnico</label>
+                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Software Técnico</label>
                     <input type="text" id="pSoftware" required placeholder="Ej. Revit / CypeCAD" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Certificación (Opcional)</label>
+                    <input type="text" id="pCert" placeholder="Ej. Passivhaus Designer" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Foto de Perfil (Desde tu PC)</label>
@@ -187,16 +190,16 @@
                     <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
                         <i data-lucide="check" class="w-7 h-7"></i>
                     </div>
-                    <h4 class="text-xl font-bold text-white mb-2">¡Dossier Descargado con Éxito!</h4>
+                    <h4 class="text-xl font-bold text-white mb-2">¡Dossier Descargado con Éxito![cite: 4]</h4>
                     <p class="text-xs text-brand-muted">El archivo se ha descargado en tu dispositivo y hemos registrado tu solicitud correctamente.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CHATBOT FLOTANTE B2B -->
+    <!-- CHATBOT FLOTANTE B2B ORIGINAL (SOPORTE) -->
     <div class="fixed bottom-6 right-6 z-50">
-        <button onclick="toggleChat()" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105 border border-blue-400/30">
+        <button onclick="window.toggleChat()" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105 border border-blue-400/30">
             <i data-lucide="message-square" class="w-6 h-6"></i>
         </button>
         <div id="chat-window" class="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-brand-card border border-brand-border rounded-3xl shadow-2xl overflow-hidden transform translate-y-4 opacity-0 transition-all duration-300 flex flex-col h-[420px]">
@@ -205,12 +208,12 @@
                     <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
                     <span class="text-xs font-bold text-white uppercase tracking-wider">Asistente Bniarq B2B</span>
                 </div>
-                <button onclick="toggleChat()" class="text-brand-muted hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button onclick="window.toggleChat()" class="text-brand-muted hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
             <div class="p-3 bg-brand-dark border-t border-brand-border flex gap-2">
-                <input type="text" id="chat-input" onkeypress="handleChatEnter(event)" placeholder="Escribe tu consulta corporativa..." class="flex-1 bg-brand-card border border-brand-border rounded-xl px-3 py-2 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none">
-                <button onclick="sendUserMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">Enviar</button>
+                <input type="text" id="chat-input" onkeypress="window.handleChatEnter(event)" placeholder="Escribe tu consulta corporativa..." class="flex-1 bg-brand-card border border-brand-border rounded-xl px-3 py-2 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none">
+                <button onclick="window.sendUserMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">Enviar</button>
             </div>
         </div>
     </div>

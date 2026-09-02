@@ -75,6 +75,22 @@ body { background-color: #030303; }
     animation: fadeInMsg 0.3s ease;
 }
 
+.chat-options-btn {
+    background-color: #0a0a0a;
+    border: 1px solid #1f1f1f;
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 4px;
+}
+.chat-options-btn:hover {
+    border-color: #2563eb;
+    background-color: #1a1a1a;
+}
+
 .chat-typing {
     display: flex;
     gap: 4px;
@@ -163,5 +179,9 @@ body { background-color: #030303; }
     .chat-msg-user, .chat-msg-bot {
         max-width: 95% !important;
         font-size: 0.8rem !important;
+    }
+    .chat-options-btn {
+        font-size: 0.7rem !important;
+        padding: 6px 10px !important;
     }
 }

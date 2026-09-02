@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bniarq | Red de Arquitectos Global</title>
+    
+    <!-- FAVICON CORPORATIVO SVG -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%232563eb'/><text x='50' y='68' font-family='sans-serif' font-size='55' font-weight='bold' fill='white' text-anchor='middle'>B</text></svg>">
+    
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -45,11 +49,11 @@
             <h1 class="text-3xl font-extrabold text-white tracking-tight">Red de Profesionales y Estudios</h1>
         </div>
 
-        <!-- Buscador -->
+        <!-- Buscador (Corregido con window.) -->
         <div class="max-w-md mx-auto mb-12">
             <div class="relative">
                 <i data-lucide="search" class="w-4 h-4 text-brand-muted absolute left-4 top-3.5"></i>
-                <input type="text" id="searchInput" oninput="filterProfiles()" placeholder="Buscar por nombre, especialidad..." class="w-full bg-brand-card border border-brand-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none transition">
+                <input type="text" id="searchInput" oninput="window.filterProfiles()" placeholder="Buscar por nombre, especialidad..." class="w-full bg-brand-card border border-brand-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none transition">
             </div>
         </div>
 

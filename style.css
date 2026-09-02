@@ -34,11 +34,21 @@ body { background-color: #030303; }
 }
 
 .chat-open {
-    transform: scale(1) !important;
+    transform: translateY(0) scale(1) !important;
     opacity: 1 !important;
 }
-#chat-messages::-webkit-scrollbar { width: 4px; }
-#chat-messages::-webkit-scrollbar-thumb { background: #333333; border-radius: 4px; }
+
+#chat-messages::-webkit-scrollbar,
+#threadMessages::-webkit-scrollbar,
+#conversationsList::-webkit-scrollbar {
+    width: 4px;
+}
+#chat-messages::-webkit-scrollbar-thumb,
+#threadMessages::-webkit-scrollbar-thumb,
+#conversationsList::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 4px;
+}
 
 .chat-msg-bot {
     background-color: #1a1a1a;
@@ -63,13 +73,20 @@ body { background-color: #030303; }
     animation: fadeInMsg 0.3s ease;
 }
 .chat-typing {
-    display: flex; gap: 4px; padding: 12px 14px;
-    background-color: #1a1a1a; border: 1px solid #262626;
-    border-radius: 12px 12px 12px 2px; width: fit-content;
+    display: flex; 
+    gap: 4px; 
+    padding: 12px 14px;
+    background-color: #1a1a1a; 
+    border: 1px solid #262626;
+    border-radius: 12px 12px 12px 2px; 
+    width: fit-content;
 }
 .chat-typing span {
-    width: 6px; height: 6px; background-color: #737373;
-    border-radius: 50%; animation: typingDots 1.4s infinite ease-in-out both;
+    width: 6px; 
+    height: 6px; 
+    background-color: #737373;
+    border-radius: 50%; 
+    animation: typingDots 1.4s infinite ease-in-out both;
 }
 .chat-typing span:nth-child(1) { animation-delay: -0.32s; }
 .chat-typing span:nth-child(2) { animation-delay: -0.16s; }
@@ -104,20 +121,18 @@ body { background-color: #030303; }
     box-shadow: 0 0 30px rgba(37, 99, 235, 0.05);
 }
 
-.profile-editor-section {
-    border-bottom: 1px solid #1f1f1f;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-}
-.profile-editor-section:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-    margin-bottom: 0;
-}
-
 .peer:checked ~ .peer-checked\:bg-blue-600 {
     background-color: #2563eb;
 }
 .peer:checked ~ .peer-checked\:after\:translate-x-full::after {
     transform: translateX(100%);
+}
+
+.hidden-modal {
+    display: none !important;
+}
+.flex-center {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }

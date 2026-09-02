@@ -42,6 +42,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #2563EB; }
         .modal-overlay { transition: opacity 0.3s ease; }
         .hidden-modal { display: none !important; }
+        .flex-center { display: flex; align-items: center; justify-content: center; }
         #chat-window, #inbox-window { transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
     </style>
 </head>
@@ -51,7 +52,7 @@
     <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-4 px-6 md:px-12 flex items-center justify-between border-b border-transparent bg-brand-dark/90 backdrop-blur-md">
         <a href="index.html" class="text-xl font-bold tracking-tighter text-white">bniarq<span class="text-blue-500">.</span></a>
         <div class="flex items-center gap-4">
-            <div id="authAreaPerfiles" class="flex items-center gap-3">
+            <div id="authArea" class="flex items-center gap-3">
                 <button onclick="openAuthModal('login')" class="text-xs font-bold text-brand-muted hover:text-white transition px-3 py-2">Iniciar sesión</button>
                 <button onclick="openAuthModal('register')" class="bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold px-4 py-2.5 rounded-full transition">Crear cuenta</button>
             </div>
@@ -78,7 +79,9 @@
         <div id="profilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </main>
 
-    <!-- MENSAJERÍA FLOTANTE -->
+    <!-- ========================================== -->
+    <!-- MENSAJERÍA FLOTANTE (MISMO QUE INDEX.HTML) -->
+    <!-- ========================================== -->
     <div id="messagesFab" class="hidden fixed bottom-24 right-6 z-50">
         <button onclick="toggleInbox()" class="relative bg-brand-card border border-brand-border hover:border-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105">
             <i data-lucide="mail" class="w-6 h-6"></i>
@@ -109,7 +112,10 @@
         </div>
     </div>
 
-    <!-- MODALES (Mismos que en index.html) -->
+    <!-- ========================================== -->
+    <!-- MODALES UNIFICADOS (MISMOS QUE INDEX.HTML) -->
+    <!-- ========================================== -->
+    
     <!-- MODAL DE AUTENTICACIÓN -->
     <div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative mx-4 max-h-[90vh] overflow-y-auto">

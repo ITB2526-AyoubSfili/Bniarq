@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bniarq | Plataforma Global para Arquitectura y Construcción[cite: 4]</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%232563eb'/><text x='50' y='68' font-family='sans-serif' font-size='55' font-weight='bold' fill='white' text-anchor='middle'>B</text></svg>">
-    <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,7 +23,6 @@
             }
         }
     </script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -57,8 +55,14 @@
             <a href="#como-funciona" class="hover:text-white transition">Cómo Funciona</a>
             <a href="#ecosistema" class="hover:text-white transition">Ecosistema</a>
         </div>
-        <div>
-            <a href="#contacto" class="bg-white hover:bg-gray-200 text-black text-xs font-bold px-5 py-2.5 rounded-full transition shadow-lg">
+        <div class="flex items-center gap-4">
+            <!-- CONTENEDOR DE AUTENTICACIÓN GOOGLE / APPLE / PERFIL -->
+            <div id="authContainer">
+                <button onclick="window.loginWithGoogle()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition cursor-pointer">
+                    Iniciar Sesión
+                </button>
+            </div>
+            <a href="#contacto" class="bg-white hover:bg-gray-200 text-black text-xs font-bold px-5 py-2.5 rounded-full transition shadow-lg hidden sm:inline-block">
                 Solicitar Dossier
             </a>
         </div>
@@ -75,7 +79,7 @@
                 Infraestructura B2B de colaboración para el <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">sector arquitectónico</span>[cite: 2, 4].
             </h1>
             <p class="text-sm md:text-base text-brand-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-                Directorio multicriterio sincronizado en tiempo real con mensajería P2P y Secure Data Rooms cifradas[cite: 2, 4].
+                Directorio multicriterio sincronizado en tiempo real con mensajería P2P segura mediante autenticación y Secure Data Rooms cifradas[cite: 2, 4].
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <a href="#directorio" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-2xl transition text-xs shadow-xl flex items-center justify-center gap-2">
@@ -93,10 +97,10 @@
         <div class="max-w-7xl mx-auto reveal">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                 <div>
-                    <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Directorio Global España</span>
+                    <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Directorio Global España (+70 Registrados)</span>
                     <h2 class="text-3xl font-extrabold text-white tracking-tight">Estudios y Profesionales Validados</h2>
                 </div>
-                <!-- Buscador Dinámico Multicriterio -->
+                <!-- Buscador Dinámico -->
                 <div class="w-full md:w-80">
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-brand-muted absolute left-4 top-3.5"></i>
@@ -110,7 +114,7 @@
         </div>
     </section>
 
-    <!-- FORMULARIO DE REGISTRO (CON CERTIFICACIONES Y FOTO PC) -->
+    <!-- FORMULARIO DE REGISTRO DE PERFILES -->
     <section id="registro" class="py-24 px-6 md:px-12 border-t border-brand-border bg-brand-card/50">
         <div class="max-w-xl mx-auto reveal">
             <div class="text-center mb-10">
@@ -144,14 +148,14 @@
                     <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Foto de Perfil (Desde tu PC)</label>
                     <input type="file" id="pPhotoFile" accept="image/*" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 outline-none cursor-pointer">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg cursor-pointer">
                     Publicar Perfil en la Red
                 </button>
             </form>
         </div>
     </section>
 
-    <!-- CÓMO FUNCIONA / ECOSISTEMA -->
+    <!-- CÓMO FUNCIONA -->
     <section id="como-funciona" class="py-24 px-6 md:px-12 border-t border-brand-border bg-brand-dark">
         <div class="max-w-5xl mx-auto reveal text-center">
             <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Arquitectura de Software</span>
@@ -180,12 +184,11 @@
                             <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Correo Corporativo</label>
                             <input type="email" name="email" required placeholder="tu@estudio.com" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
                         </div>
-                        <button type="submit" id="btnSubmitDossier" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg flex items-center justify-center gap-2">
+                        <button type="submit" id="btnSubmitDossier" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer">
                             Descargar Dossier PDF
                         </button>
                     </form>
                 </div>
-                <!-- Éxito Dossier -->
                 <div id="dossierSuccess" class="hidden flex-col items-center justify-center text-center py-6">
                     <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
                         <i data-lucide="check" class="w-7 h-7"></i>
@@ -197,9 +200,9 @@
         </div>
     </section>
 
-    <!-- CHATBOT FLOTANTE B2B ORIGINAL (SOPORTE) -->
+    <!-- CHATBOT FLOTANTE B2B -->
     <div class="fixed bottom-6 right-6 z-50">
-        <button onclick="window.toggleChat()" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105 border border-blue-400/30">
+        <button onclick="window.toggleChat()" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105 border border-blue-400/30 cursor-pointer">
             <i data-lucide="message-square" class="w-6 h-6"></i>
         </button>
         <div id="chat-window" class="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-brand-card border border-brand-border rounded-3xl shadow-2xl overflow-hidden transform translate-y-4 opacity-0 transition-all duration-300 flex flex-col h-[420px]">
@@ -208,17 +211,16 @@
                     <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
                     <span class="text-xs font-bold text-white uppercase tracking-wider">Asistente Bniarq B2B</span>
                 </div>
-                <button onclick="window.toggleChat()" class="text-brand-muted hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button onclick="window.toggleChat()" class="text-brand-muted hover:text-white cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
             <div class="p-3 bg-brand-dark border-t border-brand-border flex gap-2">
                 <input type="text" id="chat-input" onkeypress="window.handleChatEnter(event)" placeholder="Escribe tu consulta corporativa..." class="flex-1 bg-brand-card border border-brand-border rounded-xl px-3 py-2 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none">
-                <button onclick="window.sendUserMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">Enviar</button>
+                <button onclick="window.sendUserMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer">Enviar</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT PRINCIPAL (MÓDULO FIREBASE) -->
     <script type="module" src="script.js"></script>
 </body>
 </html>

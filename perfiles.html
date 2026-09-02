@@ -1,124 +1,63 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red de Talento — Bniarq</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="logo.png">
-
+    <title>Bniarq | Red de Arquitectos Global</title>
+    <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         brand: {
                             dark: '#030303',
-                            card: '#0c0c0c',
+                            card: '#0a0a0a',
                             border: '#1f1f1f',
-                            muted: '#888888',
-                            accent: '#2563EB',
+                            muted: '#a1a1aa'
                         }
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #030303; color: #ffffff; }
+    </style>
 </head>
-<body class="bg-brand-dark text-white font-sans antialiased selection:bg-blue-500 selection:text-white">
+<body class="bg-brand-dark text-white selection:bg-blue-600 selection:text-white antialiased">
 
-    <!-- NAVEGACIÓN -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-brand-dark/90 backdrop-blur-xl border-b border-brand-border transition-all duration-300" id="navbar">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <span class="text-2xl font-black tracking-tighter text-white">bniarq<span class="text-blue-600">.</span></span>
-            </div>
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
-                <a href="index.html" class="hover:text-white transition">Inicio</a>
-                <a href="perfiles.html" class="text-white font-semibold text-blue-400">Red de Arquitectos</a>
-            </nav>
-            <div>
-                <a href="#crear-perfil" class="bg-blue-600 text-white text-sm font-bold px-6 py-2.5 rounded-full hover:bg-blue-500 transition shadow-lg">
-                    Crear mi Perfil
-                </a>
+    <!-- HEADER / NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-brand-dark/90 backdrop-blur-md border-b border-brand-border py-4 px-6 md:px-12 flex items-center justify-between">
+        <a href="index.html" class="text-xl font-bold tracking-tighter text-white">bniarq<span class="text-blue-500">.</span></a>
+        <a href="index.html" class="bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold px-4 py-2 rounded-full transition">Volver al Inicio</a>
+    </nav>
+
+    <!-- DIRECTORIO DE PERFILES -->
+    <main class="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto">
+        <div class="mb-12 text-center">
+            <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Directorio Global</span>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">Red de Profesionales y Estudios</h1>
+        </div>
+
+        <!-- Buscador -->
+        <div class="max-w-md mx-auto mb-12">
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-brand-muted absolute left-4 top-3.5"></i>
+                <input type="text" id="searchInput" oninput="filterProfiles()" placeholder="Buscar por nombre, especialidad..." class="w-full bg-brand-card border border-brand-border rounded-xl pl-11 pr-4 py-3 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none transition">
             </div>
         </div>
-    </header>
 
-    <!-- HERO -->
-    <section class="pt-32 pb-16 border-b border-brand-border bg-brand-card/30">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white mb-4">Red Profesional de Arquitectura y Talento BIM</h1>
-            <p class="text-brand-muted text-base max-w-2xl mx-auto">Explora los perfiles demo de estudios e ingenieros o añade el tuyo propio para formar parte del directorio activo.</p>
-        </div>
-    </section>
+        <!-- Grid de Perfiles sincronizados -->
+        <div id="profilesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
 
-    <!-- DIRECTORIO Y BUSCADOR -->
-    <section class="py-16 bg-brand-dark min-h-[60vh]">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
-                <h2 class="text-xl font-bold text-white flex items-center gap-2"><i data-lucide="shield-check" class="text-blue-500 w-5 h-5"></i> Profesionales Verificados</h2>
-                <input type="text" id="searchInput" placeholder="Buscar por nombre, especialidad o ciudad..." onkeyup="filterProfiles()" class="bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none w-full md:w-96 transition">
-            </div>
-
-            <!-- Grid Dinámico -->
-            <div id="profilesGrid" class="grid md:grid-cols-3 gap-6"></div>
-        </div>
-    </section>
-
-    <!-- FORMULARIO DE REGISTRO REAL -->
-    <section id="crear-perfil" class="py-24 bg-brand-card/50 border-t border-brand-border">
-        <div class="max-w-3xl mx-auto px-6">
-            <div class="text-center mb-12">
-                <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-3">Únete a la Red</h2>
-                <h3 class="text-3xl font-black text-white">Crea tu Tarjeta Profesional</h3>
-                <p class="text-brand-muted text-sm mt-2">Rellena los datos para guardar tu perfil en este navegador de forma permanente.</p>
-            </div>
-
-            <form id="profileForm" class="bg-brand-dark p-8 md:p-10 rounded-3xl border border-brand-border shadow-2xl space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-xs font-bold text-brand-muted mb-2 uppercase">Nombre o Estudio</label>
-                        <input type="text" id="pName" required placeholder="Ej. Elena Aris Studio" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-brand-muted mb-2 uppercase">Especialidad Principal</label>
-                        <input type="text" id="pRole" required placeholder="Ej. Diseño Residencial & BIM" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-xs font-bold text-brand-muted mb-2 uppercase">Ciudad / Zona</label>
-                        <input type="text" id="pLocation" required placeholder="Ej. Barcelona, España" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-brand-muted mb-2 uppercase">Software / Certificación</label>
-                        <input type="text" id="pSoftware" required placeholder="Ej. Revit Level 3 / Passivhaus" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-2 uppercase">URL de Foto de Perfil (Opcional)</label>
-                    <input type="url" id="pPhoto" placeholder="https://images.unsplash.com/... (o déjalo en blanco)" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-white text-sm focus:border-blue-500 outline-none">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition text-sm shadow-lg">
-                    Guardar y Publicar Perfil
-                </button>
-            </form>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="py-10 bg-brand-dark border-t border-brand-border text-center">
-        <p class="text-xs text-brand-muted">&copy; 2026 Bniarq Network. Todos los derechos reservados.</p>
-    </footer>
-
-    <script src="script.js"></script>
+    <!-- SCRIPT PRINCIPAL (MÓDULO FIREBASE) -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>

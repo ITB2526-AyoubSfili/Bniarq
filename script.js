@@ -7,7 +7,8 @@ import {
 import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut,
     onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword
+    updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // Configuración de Firebase
@@ -1083,8 +1084,25 @@ function watchAuthState() {
                 cargo: userData.cargo || '',
                 telefono: userData.telefono || '',
                 fechaNacimiento: userData.fechaNacimiento || '',
-                twoFAEnabled: userData.twoFAEnabled || false
+                twoFAEnabled: userData.twoFAEnabled || false,
+                providerId: user.providerData?.[0]?.providerId || 'password'
             };
+
+            // Detectar si es usuario de Google para el botón de cambio de contraseña
+            const isGoogleUser = currentUserProfile.providerId === 'google.com';
+            const changeBtn = document.getElementById('changePasswordBtn');
+            const helper = document.getElementById('passwordHelper');
+            
+            if (changeBtn && helper) {
+                if (isGoogleUser) {
+                    changeBtn.textContent = '🔑 Recuperar contraseña (Google)';
+                    helper.textContent = 'Has iniciado sesión con Google. Recibirás un email para establecer una contraseña.';
+                    helper.classList.remove('hidden');
+                } else {
+                    changeBtn.textContent = 'Cambiar contraseña';
+                    helper.classList.add('hidden');
+                }
+            }
 
             const userHTML = `
                 <div class="relative">
@@ -1098,6 +1116,7 @@ function watchAuthState() {
                             <p class="text-[10px] text-brand-muted truncate">${currentUserProfile.email}</p>
                             ${currentUserProfile.empresa ? `<p class="text-[10px] text-brand-muted">${currentUserProfile.empresa}</p>` : ''}
                             ${currentUserProfile.twoFAEnabled ? `<p class="text-[10px] text-emerald-400">🔒 2FA Activado</p>` : `<p class="text-[10px] text-brand-muted">🔓 2FA Desactivado</p>`}
+                            ${currentUserProfile.providerId === 'google.com' ? `<p class="text-[10px] text-blue-400">🔗 Google</p>` : ''}
                         </div>
                         <button onclick="openProfileEditor(); toggleAccountMenu();" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-brand-border transition flex items-center gap-2">
                             <i data-lucide="user-cog" class="w-3.5 h-3.5"></i> Editar perfil
@@ -1158,7 +1177,7 @@ document.addEventListener('click', (e) => {
 });
 
 // ==========================================
-// EDITOR DE PERFIL
+// EDITOR DE PERFIL CON 2FA COMPLETO
 // ==========================================
 function initProfileEditor() {
     const form = document.getElementById('profileEditorForm');
@@ -1205,30 +1224,42 @@ function initProfileEditor() {
                 await updateProfile(user, { displayName: `${name} ${apellido}` });
             }
 
-            // ACTUALIZAR 2FA
+            // ==========================================
+            // FLUJO COMPLETO DE 2FA
+            // ==========================================
             const current2FA = currentUserProfile?.twoFAEnabled || false;
             if (twoFAEnabled !== current2FA) {
                 if (twoFAEnabled) {
+                    // ACTIVAR 2FA - Enviar código de verificación
                     const verified = await start2FAFlow(user.email, name);
                     if (verified) {
                         await updateDoc(doc(db, 'usuarios', user.uid), {
-                            twoFAEnabled: true
+                            twoFAEnabled: true,
+                            twoFAActivatedAt: serverTimestamp()
                         });
                         currentUserProfile.twoFAEnabled = true;
-                        alert('✅ 2FA activado correctamente.');
+                        alert('✅ ¡2FA activado correctamente!');
                     } else {
                         document.getElementById('edit2FA').checked = false;
-                        throw new Error('No se pudo activar 2FA');
+                        throw new Error('No se pudo activar 2FA. El código no fue verificado.');
                     }
                 } else {
-                    await updateDoc(doc(db, 'usuarios', user.uid), {
-                        twoFAEnabled: false
-                    });
-                    currentUserProfile.twoFAEnabled = false;
-                    alert('✅ 2FA desactivado correctamente.');
+                    // DESACTIVAR 2FA - Confirmar con el usuario
+                    const confirmDisable = confirm('⚠️ ¿Estás seguro de que quieres desactivar la autenticación en dos pasos?\n\nEsto reducirá la seguridad de tu cuenta.');
+                    if (confirmDisable) {
+                        await updateDoc(doc(db, 'usuarios', user.uid), {
+                            twoFAEnabled: false
+                        });
+                        currentUserProfile.twoFAEnabled = false;
+                        alert('✅ 2FA desactivado correctamente.');
+                    } else {
+                        document.getElementById('edit2FA').checked = true;
+                        throw new Error('Cancelaste la desactivación de 2FA.');
+                    }
                 }
             }
 
+            // Actualizar resto de datos
             await updateDoc(doc(db, 'usuarios', user.uid), {
                 name: name,
                 apellido: apellido,
@@ -1263,7 +1294,7 @@ function initProfileEditor() {
         } catch (error) {
             console.error('Error al guardar perfil:', error);
             if (errorEl && !errorEl.textContent) {
-                errorEl.textContent = 'Error al guardar los cambios. Reintenta.';
+                errorEl.textContent = error.message || 'Error al guardar los cambios. Reintenta.';
                 errorEl.classList.remove('hidden');
             }
         } finally {
@@ -1290,6 +1321,22 @@ window.openProfileEditor = function() {
     document.getElementById('editProfileError').classList.add('hidden');
     document.getElementById('editProfileSuccess').classList.add('hidden');
 
+    // Actualizar botón de contraseña
+    const isGoogleUser = currentUserProfile.providerId === 'google.com';
+    const changeBtn = document.getElementById('changePasswordBtn');
+    const helper = document.getElementById('passwordHelper');
+    
+    if (changeBtn && helper) {
+        if (isGoogleUser) {
+            changeBtn.textContent = '🔑 Recuperar contraseña (Google)';
+            helper.textContent = 'Has iniciado sesión con Google. Recibirás un email para establecer una contraseña.';
+            helper.classList.remove('hidden');
+        } else {
+            changeBtn.textContent = 'Cambiar contraseña';
+            helper.classList.add('hidden');
+        }
+    }
+
     const modal = document.getElementById('profileEditorModal');
     if (modal) {
         modal.classList.remove('hidden-modal');
@@ -1309,6 +1356,9 @@ window.closeProfileEditor = function() {
     }
 };
 
+// ==========================================
+// CAMBIAR CONTRASEÑA (CON DETECCIÓN DE PROVEEDOR)
+// ==========================================
 window.changePassword = async function() {
     const user = auth.currentUser;
     if (!user) {
@@ -1316,32 +1366,59 @@ window.changePassword = async function() {
         return;
     }
 
-    const currentPassword = prompt('Introduce tu contraseña actual:');
-    if (!currentPassword) return;
+    // Verificar si el usuario inició sesión con Google
+    const providerId = currentUserProfile?.providerId || user.providerData?.[0]?.providerId;
 
-    const newPassword = prompt('Introduce tu nueva contraseña (mín. 6 caracteres):');
+    if (providerId === 'google.com') {
+        // USUARIO DE GOOGLE - Enviar email de recuperación
+        const confirmReset = confirm(
+            '🔑 Has iniciado sesión con Google.\n\n' +
+            'No tienes una contraseña asociada a tu cuenta.\n\n' +
+            '¿Quieres recibir un email para establecer una contraseña nueva?'
+        );
+        
+        if (confirmReset) {
+            try {
+                await sendPasswordResetEmail(auth, user.email);
+                alert('✅ Se ha enviado un email de recuperación a:\n\n' + user.email + '\n\nRevisa tu bandeja de entrada (y spam).');
+            } catch (error) {
+                console.error('Error al enviar email de recuperación:', error);
+                alert('❌ Error al enviar el email. Inténtalo de nuevo más tarde.');
+            }
+        }
+        return;
+    }
+
+    // USUARIO NORMAL - Cambiar contraseña
+    const currentPassword = prompt('🔐 Introduce tu contraseña actual:');
+    if (currentPassword === null) return;
+
+    const newPassword = prompt('🔑 Introduce tu nueva contraseña (mín. 6 caracteres):');
     if (!newPassword || newPassword.length < 6) {
         alert('La contraseña debe tener al menos 6 caracteres.');
         return;
     }
 
-    const confirmPassword = prompt('Confirma tu nueva contraseña:');
+    const confirmPassword = prompt('🔑 Confirma tu nueva contraseña:');
     if (newPassword !== confirmPassword) {
-        alert('Las contraseñas no coinciden.');
+        alert('❌ Las contraseñas no coinciden.');
         return;
     }
 
     try {
+        // Reautenticar antes de cambiar contraseña
         const credential = EmailAuthProvider.credential(user.email, currentPassword);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPassword);
-        alert('¡Contraseña actualizada con éxito!');
+        alert('✅ ¡Contraseña actualizada con éxito!');
     } catch (error) {
         console.error('Error al cambiar contraseña:', error);
         if (error.code === 'auth/wrong-password') {
-            alert('La contraseña actual es incorrecta.');
+            alert('❌ La contraseña actual es incorrecta.');
+        } else if (error.code === 'auth/too-many-requests') {
+            alert('❌ Demasiados intentos. Espera un momento.');
         } else {
-            alert('Error al cambiar la contraseña: ' + translateAuthError(error.code));
+            alert('❌ Error al cambiar la contraseña: ' + translateAuthError(error.code));
         }
     }
 };

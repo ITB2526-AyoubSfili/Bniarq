@@ -1,13 +1,13 @@
 // Importar funciones de Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
-    getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc,
-    query, where, orderBy, onSnapshot, serverTimestamp, updateDoc
+    getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, updateDoc,
+    query, where, orderBy, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
-    getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signOut,
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut,
     onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    updateProfile
+    updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // Configuración de Firebase
@@ -33,9 +33,12 @@ let conversationsUnsub = null;
 let activeThreadUnsub = null;
 let activeConversationId = null;
 let activePeer = null;
+let current2FACode = null;
+let current2FAEmail = null;
+let pending2FAResolve = null;
 
 // ==========================================
-// PERFILES DEMO MEJORADOS
+// PERFILES DEMO
 // ==========================================
 const demoProfiles = [
     { 
@@ -113,7 +116,7 @@ const demoProfiles = [
 ];
 
 // ==========================================
-// CARGA DE PERFILES DESDE FIREBASE
+// CARGA DE PERFILES
 // ==========================================
 async function loadProfilesFromFirebase() {
     const grid = document.getElementById('profilesGrid');
@@ -241,6 +244,8 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfileRegistration();
     initNdaModal();
     initAuthForm();
+    initProfileEditor();
+    init2FA();
     watchAuthState();
 });
 
@@ -410,74 +415,41 @@ function initProfileRegistration() {
 // NDA MODAL
 // ==========================================
 function initNdaModal() {
-    if (document.getElementById('ndaModal')) return;
-
-    const modalHTML = `
-        <div id="ndaModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-            <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
-                <button onclick="closeNdaModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-                <div id="ndaFormContainer">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/30">
-                            <i data-lucide="folder-lock" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-white">Acuerdo de Confidencialidad</h3>
-                            <p class="text-xs text-brand-muted">Conectando con <span id="targetStudioName" class="text-white font-semibold"></span></p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-brand-muted mb-6 leading-relaxed">
-                        Para abrir una Secure Data Room y compartir documentación técnica, ambas partes deben suscribir el NDA digital bajo normativa corporativa Bniarq.
-                    </p>
-                    <form id="ndaActionForm" onsubmit="submitNda(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Tu Correo Corporativo</label>
-                            <input type="email" id="ndaEmail" required placeholder="tu@empresa.com" class="w-full bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg flex items-center justify-center gap-2">
-                            Firmar NDA y Abrir Data Room
-                        </button>
-                    </form>
-                </div>
-                <div id="ndaSuccessContainer" class="hidden text-center py-6">
-                    <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
-                        <i data-lucide="check" class="w-7 h-7"></i>
-                    </div>
-                    <h4 class="text-xl font-bold text-white mb-2">¡NDA Firmado con Éxito!</h4>
-                    <p class="text-xs text-brand-muted mb-6">Hemos enviado las credenciales cifradas de la sala segura a tu correo corporativo.</p>
-                    <button onclick="closeNdaModal()" class="w-full bg-brand-card border border-brand-border text-white text-xs font-bold py-3 rounded-xl hover:bg-brand-border transition">
-                        Entendido
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    // El modal ya está en el HTML
 }
 
 window.openNdaModal = function(studioName) {
-    document.getElementById('targetStudioName').textContent = studioName;
-    document.getElementById('ndaFormContainer').classList.remove('hidden');
-    document.getElementById('ndaSuccessContainer').classList.add('hidden');
-    document.getElementById('ndaEmail').value = '';
+    const target = document.getElementById('targetStudioName');
+    const container = document.getElementById('ndaFormContainer');
+    const success = document.getElementById('ndaSuccessContainer');
+    const email = document.getElementById('ndaEmail');
+    
+    if (target) target.textContent = studioName;
+    if (container) container.classList.remove('hidden');
+    if (success) success.classList.add('hidden');
+    if (email) email.value = '';
+    
     const modal = document.getElementById('ndaModal');
-    modal.classList.remove('hidden');
-    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    }
 };
 
 window.closeNdaModal = function() {
     const modal = document.getElementById('ndaModal');
-    modal.classList.add('opacity-0');
-    setTimeout(() => modal.classList.add('hidden'), 300);
+    if (modal) {
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
 };
 
 window.submitNda = function(e) {
     e.preventDefault();
-    document.getElementById('ndaFormContainer').classList.add('hidden');
-    document.getElementById('ndaSuccessContainer').classList.remove('hidden');
+    const container = document.getElementById('ndaFormContainer');
+    const success = document.getElementById('ndaSuccessContainer');
+    if (container) container.classList.add('hidden');
+    if (success) success.classList.remove('hidden');
 };
 
 // ==========================================
@@ -573,6 +545,117 @@ function processBotResponse(userText) {
 }
 
 // ==========================================
+// SISTEMA DE 2FA
+// ==========================================
+function init2FA() {}
+
+function generate2FACode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function send2FACodeByEmail(email, code) {
+    console.log(`📧 Código 2FA para ${email}: ${code}`);
+    alert(`🔐 Se ha enviado un código de verificación a ${email}\n\nCódigo: ${code}\n\n(En producción este código llegaría por email)`);
+    return true;
+}
+
+async function start2FAFlow(email) {
+    return new Promise((resolve) => {
+        pending2FAResolve = resolve;
+        const code = generate2FACode();
+        current2FACode = code;
+        current2FAEmail = email;
+        send2FACodeByEmail(email, code);
+        const modal = document.getElementById('2faModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            const codeInput = document.getElementById('2faCode');
+            if (codeInput) {
+                codeInput.value = '';
+                codeInput.focus();
+            }
+            const errorEl = document.getElementById('2faError');
+            if (errorEl) errorEl.classList.add('hidden');
+            const submitBtn = document.getElementById('2faSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Verificar y Acceder';
+            }
+        }
+    });
+}
+
+window.verify2FACode = async function(e) {
+    e.preventDefault();
+    const codeInput = document.getElementById('2faCode');
+    const errorEl = document.getElementById('2faError');
+    const submitBtn = document.getElementById('2faSubmitBtn');
+    
+    if (!codeInput || !errorEl || !submitBtn) return;
+    
+    const enteredCode = codeInput.value.trim();
+    
+    if (enteredCode.length !== 6 || !/^\d{6}$/.test(enteredCode)) {
+        errorEl.textContent = 'El código debe tener 6 dígitos numéricos.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verificando...';
+    
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (enteredCode === current2FACode) {
+        errorEl.classList.add('hidden');
+        close2FAModal();
+        if (pending2FAResolve) {
+            pending2FAResolve(true);
+            pending2FAResolve = null;
+        }
+        loadProfilesFromFirebase();
+    } else {
+        errorEl.textContent = 'Código incorrecto. Por favor, inténtalo de nuevo.';
+        errorEl.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Verificar y Acceder';
+        codeInput.value = '';
+        codeInput.focus();
+    }
+};
+
+window.close2FAModal = function() {
+    const modal = document.getElementById('2faModal');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+    if (pending2FAResolve) {
+        pending2FAResolve(false);
+        pending2FAResolve = null;
+    }
+};
+
+window.resend2FACode = function() {
+    if (current2FAEmail) {
+        const newCode = generate2FACode();
+        current2FACode = newCode;
+        send2FACodeByEmail(current2FAEmail, newCode);
+        const errorEl = document.getElementById('2faError');
+        if (errorEl) {
+            errorEl.textContent = 'Nuevo código enviado. Revisa tu correo.';
+            errorEl.classList.remove('hidden');
+            errorEl.classList.add('text-emerald-400');
+            errorEl.classList.remove('text-red-400');
+            setTimeout(() => {
+                errorEl.classList.add('hidden');
+            }, 5000);
+        }
+    }
+};
+
+// ==========================================
 // AUTENTICACIÓN COMPLETA
 // ==========================================
 window.openAuthModal = function(mode) {
@@ -580,7 +663,8 @@ window.openAuthModal = function(mode) {
     applyAuthMode();
     const modal = document.getElementById('authModal');
     if (!modal) return;
-    document.getElementById('authError').classList.add('hidden');
+    const errorEl = document.getElementById('authError');
+    if (errorEl) errorEl.classList.add('hidden');
     modal.classList.remove('hidden');
     setTimeout(() => modal.classList.remove('opacity-0'), 10);
 };
@@ -651,11 +735,13 @@ function showAuthError(message) {
     if (!err) return;
     err.textContent = message;
     err.classList.remove('hidden');
+    err.classList.remove('text-yellow-400');
+    err.classList.add('text-red-400');
 }
 
 function translateAuthError(code) {
     const map = {
-        'auth/email-already-in-use': 'Ese correo ya tiene una cuenta. Prueba a iniciar sesión.',
+        'auth/email-already-in-use': 'Este correo ya está registrado. Inicia sesión o usa "¿Olvidaste tu contraseña?".',
         'auth/invalid-email': 'El correo no es válido.',
         'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
         'auth/user-not-found': 'No existe ninguna cuenta con ese correo.',
@@ -680,7 +766,8 @@ function initAuthForm() {
         const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.textContent = 'Procesando...';
-        document.getElementById('authError').classList.add('hidden');
+        const errorEl = document.getElementById('authError');
+        if (errorEl) errorEl.classList.add('hidden');
 
         try {
             if (authMode === 'register') {
@@ -702,32 +789,65 @@ function initAuthForm() {
                 if (password !== confirmPassword) { showAuthError('Las contraseñas no coinciden.'); throw new Error('Contraseñas no coinciden'); }
                 if (!terminos.checked) { showAuthError('Debes aceptar los términos y condiciones.'); throw new Error('Términos no aceptados'); }
                 
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                if (name) {
-                    await updateProfile(cred.user, { displayName: `${name} ${apellido}` });
+                try {
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    if (name) {
+                        await updateProfile(cred.user, { displayName: `${name} ${apellido}` });
+                    }
+                    
+                    await setDoc(doc(db, 'usuarios', cred.user.uid), {
+                        name: name,
+                        apellido: apellido,
+                        fechaNacimiento: fechaNac,
+                        telefono: telefono,
+                        empresa: empresa,
+                        cargo: cargo,
+                        email: email,
+                        createdAt: serverTimestamp(),
+                        twoFAEnabled: false
+                    });
+                    
+                    closeAuthModal();
+                    form.reset();
+                    loadProfilesFromFirebase();
+                    
+                } catch (registerError) {
+                    if (registerError.code === 'auth/email-already-in-use') {
+                        if (errorEl) {
+                            errorEl.textContent = '⚠️ Este correo ya está registrado. ';
+                            errorEl.classList.remove('hidden');
+                            errorEl.classList.add('text-yellow-400');
+                            errorEl.classList.remove('text-red-400');
+                            
+                            const switchBtn = document.createElement('button');
+                            switchBtn.textContent = 'Iniciar sesión';
+                            switchBtn.className = 'text-blue-400 hover:text-blue-300 font-semibold ml-2 underline';
+                            switchBtn.onclick = () => {
+                                authMode = 'login';
+                                applyAuthMode();
+                                document.getElementById('authEmail').value = email;
+                                document.getElementById('authPassword').value = password;
+                                form.dispatchEvent(new Event('submit'));
+                            };
+                            errorEl.appendChild(switchBtn);
+                        }
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                        return;
+                    } else {
+                        throw registerError;
+                    }
                 }
-                
-                await setDoc(doc(db, 'usuarios', cred.user.uid), {
-                    name: name,
-                    apellido: apellido,
-                    fechaNacimiento: fechaNac,
-                    telefono: telefono,
-                    empresa: empresa,
-                    cargo: cargo,
-                    email: email,
-                    createdAt: serverTimestamp()
-                });
             } else {
+                // MODO LOGIN
                 await signInWithEmailAndPassword(auth, email, password);
+                closeAuthModal();
+                form.reset();
+                loadProfilesFromFirebase();
             }
-            closeAuthModal();
-            form.reset();
-            loadProfilesFromFirebase();
         } catch (error) {
             console.error('Error de autenticación:', error);
-            if (!document.getElementById('authError').classList.contains('hidden')) {
-                // Ya hay un error mostrado
-            } else {
+            if (errorEl && !errorEl.textContent) {
                 showAuthError(translateAuthError(error.code));
             }
         } finally {
@@ -748,7 +868,8 @@ window.signInWithGoogle = async function() {
                 await setDoc(userRef, {
                     name: result.user.displayName || '',
                     email: result.user.email || '',
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    twoFAEnabled: false
                 });
             }
         }
@@ -756,31 +877,6 @@ window.signInWithGoogle = async function() {
         loadProfilesFromFirebase();
     } catch (error) {
         console.error('Error con Google Sign-In:', error);
-        showAuthError(translateAuthError(error.code));
-    }
-};
-
-window.signInWithApple = async function() {
-    try {
-        const provider = new OAuthProvider('apple.com');
-        provider.addScope('email');
-        provider.addScope('name');
-        const result = await signInWithPopup(auth, provider);
-        if (result.user) {
-            const userRef = doc(db, 'usuarios', result.user.uid);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) {
-                await setDoc(userRef, {
-                    name: result.user.displayName || '',
-                    email: result.user.email || '',
-                    createdAt: serverTimestamp()
-                });
-            }
-        }
-        closeAuthModal();
-        loadProfilesFromFirebase();
-    } catch (error) {
-        console.error('Error con Apple Sign-In:', error);
         showAuthError(translateAuthError(error.code));
     }
 };
@@ -819,7 +915,8 @@ function watchAuthState() {
                 empresa: userData.empresa || '',
                 cargo: userData.cargo || '',
                 telefono: userData.telefono || '',
-                fechaNacimiento: userData.fechaNacimiento || ''
+                fechaNacimiento: userData.fechaNacimiento || '',
+                twoFAEnabled: userData.twoFAEnabled || false
             };
 
             const userHTML = `
@@ -830,10 +927,14 @@ function watchAuthState() {
                     </button>
                     <div id="accountMenu" class="hidden absolute right-0 mt-2 w-56 bg-brand-card border border-brand-border rounded-2xl shadow-2xl overflow-hidden">
                         <div class="px-4 py-3 border-b border-brand-border">
-                            <p class="text-xs font-bold text-white">${currentUserProfile.name} ${currentUserProfile.apellido}</p>
+                            <p class="text-xs font-bold text-white">${currentUserProfile.name} ${currentUserProfile.apellido || ''}</p>
                             <p class="text-[10px] text-brand-muted truncate">${currentUserProfile.email}</p>
                             ${currentUserProfile.empresa ? `<p class="text-[10px] text-brand-muted">${currentUserProfile.empresa}</p>` : ''}
+                            ${currentUserProfile.twoFAEnabled ? `<p class="text-[10px] text-emerald-400">🔒 2FA Activado</p>` : `<p class="text-[10px] text-brand-muted">🔓 2FA Desactivado</p>`}
                         </div>
+                        <button onclick="openProfileEditor(); toggleAccountMenu();" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-brand-border transition flex items-center gap-2">
+                            <i data-lucide="user-cog" class="w-3.5 h-3.5"></i> Editar perfil
+                        </button>
                         <button onclick="toggleInbox(); toggleAccountMenu();" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-brand-border transition flex items-center gap-2">
                             <i data-lucide="mail" class="w-3.5 h-3.5"></i> Mis mensajes
                         </button>
@@ -892,7 +993,185 @@ document.addEventListener('click', (e) => {
 });
 
 // ==========================================
-// MENSAJERÍA REAL
+// EDITOR DE PERFIL
+// ==========================================
+function initProfileEditor() {
+    const form = document.getElementById('profileEditorForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('editProfileSubmitBtn');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Guardando...';
+        
+        const errorEl = document.getElementById('editProfileError');
+        const successEl = document.getElementById('editProfileSuccess');
+        if (errorEl) errorEl.classList.add('hidden');
+        if (successEl) successEl.classList.add('hidden');
+
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                if (errorEl) {
+                    errorEl.textContent = 'No has iniciado sesión.';
+                    errorEl.classList.remove('hidden');
+                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                return;
+            }
+
+            const name = document.getElementById('editName').value.trim();
+            const apellido = document.getElementById('editApellido').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const telefono = document.getElementById('editTelefono').value.trim();
+            const empresa = document.getElementById('editEmpresa').value.trim();
+            const cargo = document.getElementById('editCargo').value.trim();
+            const fechaNac = document.getElementById('editFechaNac').value;
+            const twoFAEnabled = document.getElementById('edit2FA').checked;
+
+            if (!name) { if (errorEl) { errorEl.textContent = 'El nombre es obligatorio.'; errorEl.classList.remove('hidden'); } throw new Error('Nombre requerido'); }
+            if (!apellido) { if (errorEl) { errorEl.textContent = 'Los apellidos son obligatorios.'; errorEl.classList.remove('hidden'); } throw new Error('Apellidos requeridos'); }
+            if (!email) { if (errorEl) { errorEl.textContent = 'El email es obligatorio.'; errorEl.classList.remove('hidden'); } throw new Error('Email requerido'); }
+
+            // Actualizar nombre en Firebase Auth
+            if (name !== user.displayName) {
+                await updateProfile(user, { displayName: `${name} ${apellido}` });
+            }
+
+            // Actualizar datos en Firestore
+            await updateDoc(doc(db, 'usuarios', user.uid), {
+                name: name,
+                apellido: apellido,
+                telefono: telefono,
+                empresa: empresa,
+                cargo: cargo,
+                fechaNacimiento: fechaNac,
+                twoFAEnabled: twoFAEnabled,
+                updatedAt: serverTimestamp()
+            });
+
+            // Actualizar currentUserProfile
+            if (currentUserProfile) {
+                currentUserProfile.name = name;
+                currentUserProfile.apellido = apellido;
+                currentUserProfile.email = email;
+                currentUserProfile.telefono = telefono;
+                currentUserProfile.empresa = empresa;
+                currentUserProfile.cargo = cargo;
+                currentUserProfile.fechaNacimiento = fechaNac;
+                currentUserProfile.twoFAEnabled = twoFAEnabled;
+            }
+
+            if (successEl) {
+                successEl.textContent = '¡Perfil actualizado con éxito!';
+                successEl.classList.remove('hidden');
+            }
+            
+            // Recargar el menú de usuario
+            watchAuthState();
+            
+            setTimeout(() => {
+                closeProfileEditor();
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error al guardar perfil:', error);
+            if (errorEl && !errorEl.textContent) {
+                errorEl.textContent = 'Error al guardar los cambios. Reintenta.';
+                errorEl.classList.remove('hidden');
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+}
+
+window.openProfileEditor = function() {
+    if (!currentUserProfile) {
+        alert('Debes iniciar sesión primero.');
+        return;
+    }
+
+    const nameInput = document.getElementById('editName');
+    const apellidoInput = document.getElementById('editApellido');
+    const emailInput = document.getElementById('editEmail');
+    const telefonoInput = document.getElementById('editTelefono');
+    const empresaInput = document.getElementById('editEmpresa');
+    const cargoInput = document.getElementById('editCargo');
+    const fechaNacInput = document.getElementById('editFechaNac');
+    const twoFAInput = document.getElementById('edit2FA');
+    const errorEl = document.getElementById('editProfileError');
+    const successEl = document.getElementById('editProfileSuccess');
+
+    if (nameInput) nameInput.value = currentUserProfile.name || '';
+    if (apellidoInput) apellidoInput.value = currentUserProfile.apellido || '';
+    if (emailInput) emailInput.value = currentUserProfile.email || '';
+    if (telefonoInput) telefonoInput.value = currentUserProfile.telefono || '';
+    if (empresaInput) empresaInput.value = currentUserProfile.empresa || '';
+    if (cargoInput) cargoInput.value = currentUserProfile.cargo || '';
+    if (fechaNacInput) fechaNacInput.value = currentUserProfile.fechaNacimiento || '';
+    if (twoFAInput) twoFAInput.checked = currentUserProfile.twoFAEnabled || false;
+    if (errorEl) errorEl.classList.add('hidden');
+    if (successEl) successEl.classList.add('hidden');
+
+    const modal = document.getElementById('profileEditorModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    }
+};
+
+window.closeProfileEditor = function() {
+    const modal = document.getElementById('profileEditorModal');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+};
+
+window.changePassword = async function() {
+    const user = auth.currentUser;
+    if (!user) {
+        alert('No has iniciado sesión.');
+        return;
+    }
+
+    const currentPassword = prompt('Introduce tu contraseña actual:');
+    if (!currentPassword) return;
+
+    const newPassword = prompt('Introduce tu nueva contraseña (mín. 6 caracteres):');
+    if (!newPassword || newPassword.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres.');
+        return;
+    }
+
+    const confirmPassword = prompt('Confirma tu nueva contraseña:');
+    if (newPassword !== confirmPassword) {
+        alert('Las contraseñas no coinciden.');
+        return;
+    }
+
+    try {
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPassword);
+        alert('¡Contraseña actualizada con éxito!');
+    } catch (error) {
+        console.error('Error al cambiar contraseña:', error);
+        if (error.code === 'auth/wrong-password') {
+            alert('La contraseña actual es incorrecta.');
+        } else {
+            alert('Error al cambiar la contraseña: ' + translateAuthError(error.code));
+        }
+    }
+};
+
+// ==========================================
+// MENSAJERÍA REAL (CORREGIDA)
 // ==========================================
 function conversationIdFor(uidA, uidB) {
     return [uidA, uidB].sort().join('_');
@@ -931,6 +1210,7 @@ window.startConversation = async function(peer) {
     }
 
     openThread(convId, { uid: peer.uid, name: peer.name || 'Usuario' });
+    
     const inboxWindow = document.getElementById('inbox-window');
     if (inboxWindow) {
         inboxWindow.classList.remove('hidden');
@@ -953,31 +1233,51 @@ window.toggleInbox = function() {
 
 function watchConversations() {
     if (conversationsUnsub) conversationsUnsub();
+    
+    // Usamos la consulta sin orderBy para evitar problemas de índice
     const q = query(
         collection(db, 'conversations'),
-        where('participants', 'array-contains', auth.currentUser.uid),
-        orderBy('lastMessageAt', 'desc')
+        where('participants', 'array-contains', auth.currentUser.uid)
     );
+    
     conversationsUnsub = onSnapshot(q, (snapshot) => {
-        renderConversationsList(snapshot);
+        const docs = [];
+        snapshot.forEach(doc => {
+            docs.push({ id: doc.id, ...doc.data() });
+        });
+        // Ordenar manualmente en el cliente
+        docs.sort((a, b) => {
+            const aTime = a.lastMessageAt?.toMillis?.() || 0;
+            const bTime = b.lastMessageAt?.toMillis?.() || 0;
+            return bTime - aTime;
+        });
+        renderConversationsList(docs);
     }, (error) => {
         console.error('Error escuchando conversaciones:', error);
+        // Si el error es por índice, mostrar mensaje amigable
+        if (error.code === 'failed-precondition') {
+            const list = document.getElementById('conversationsList');
+            if (list) {
+                list.innerHTML = `<p class="text-xs text-brand-muted p-4">Configurando mensajería... Por favor, espera un momento.</p>`;
+            }
+        }
     });
 }
 
-function renderConversationsList(snapshot) {
+function renderConversationsList(docs) {
     const list = document.getElementById('conversationsList');
     if (!list) return;
 
-    if (snapshot.empty) {
+    if (!docs || docs.length === 0) {
         list.innerHTML = '<p class="text-xs text-brand-muted p-4">Aún no tienes conversaciones. Contacta con un perfil desde el directorio para empezar a chatear.</p>';
         return;
     }
 
     list.innerHTML = '';
-    snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const peerUid = data.participants.find(uid => uid !== auth.currentUser.uid);
+    docs.forEach((data) => {
+        const peerUid = data.participants?.find(uid => uid !== auth.currentUser.uid);
+        if (!peerUid) return;
+        
         const peerInfo = data.participantsInfo ? data.participantsInfo[peerUid] : null;
         const peerName = peerInfo ? peerInfo.name : 'Usuario';
         const peerPhoto = (peerInfo && peerInfo.photo) ? peerInfo.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(peerName)}&background=1f1f1f&color=fff`;
@@ -991,7 +1291,7 @@ function renderConversationsList(snapshot) {
                 <p class="text-[11px] text-brand-muted truncate">${data.lastMessage || 'Conversación iniciada'}</p>
             </div>
         `;
-        item.onclick = () => openThread(docSnap.id, { uid: peerUid, name: peerName });
+        item.onclick = () => openThread(data.id, { uid: peerUid, name: peerName });
         list.appendChild(item);
     });
 }
@@ -1000,11 +1300,22 @@ function openThread(convId, peer) {
     activeConversationId = convId;
     activePeer = peer;
 
-    document.getElementById('inboxListView').classList.add('hidden');
-    document.getElementById('threadView').classList.remove('hidden');
-    document.getElementById('threadView').classList.add('flex');
-    document.getElementById('threadPeerName').textContent = peer.name || 'Usuario';
-    document.getElementById('threadMessages').innerHTML = '<p class="text-xs text-brand-muted text-center">Cargando mensajes...</p>';
+    const inboxListView = document.getElementById('inboxListView');
+    const threadView = document.getElementById('threadView');
+    const threadPeerName = document.getElementById('threadPeerName');
+    const threadMessages = document.getElementById('threadMessages');
+
+    if (!inboxListView || !threadView || !threadPeerName || !threadMessages) {
+        console.error('Elementos de mensajería no encontrados en la página');
+        alert('La ventana de mensajería no está disponible en esta página.');
+        return;
+    }
+
+    inboxListView.classList.add('hidden');
+    threadView.classList.remove('hidden');
+    threadView.classList.add('flex');
+    threadPeerName.textContent = peer.name || 'Usuario';
+    threadMessages.innerHTML = '<p class="text-xs text-brand-muted text-center">Cargando mensajes...</p>';
 
     if (activeThreadUnsub) activeThreadUnsub();
     const q = query(collection(db, 'conversations', convId, 'messages'), orderBy('createdAt', 'asc'));
@@ -1041,10 +1352,21 @@ window.backToInbox = function() {
 };
 
 function backToInboxView() {
-    document.getElementById('threadView').classList.add('hidden');
-    document.getElementById('threadView').classList.remove('flex');
-    document.getElementById('inboxListView').classList.remove('hidden');
-    if (activeThreadUnsub) { activeThreadUnsub(); activeThreadUnsub = null; }
+    const inboxListView = document.getElementById('inboxListView');
+    const threadView = document.getElementById('threadView');
+    
+    if (threadView) {
+        threadView.classList.add('hidden');
+        threadView.classList.remove('flex');
+    }
+    if (inboxListView) {
+        inboxListView.classList.remove('hidden');
+    }
+    
+    if (activeThreadUnsub) { 
+        activeThreadUnsub(); 
+        activeThreadUnsub = null; 
+    }
     activeConversationId = null;
     activePeer = null;
 }
@@ -1077,7 +1399,7 @@ window.sendThreadMessage = async function() {
 };
 
 // ==========================================
-// FILTRADO DE PERFILES (GLOBAL)
+// FILTRADO DE PERFILES
 // ==========================================
 window.filterProfiles = function() {
     const queryElement = document.getElementById('searchInput');

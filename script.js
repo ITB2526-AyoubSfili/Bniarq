@@ -1,8 +1,27 @@
+// Importar funciones de Firebase SDK
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Tu configuración oficial de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBYsGex2nRwItwWIqKZhx3UDBOJo-OwR9s",
+    authDomain: "bniarqdatabase.firebaseapp.com",
+    projectId: "bniarqdatabase",
+    storageBucket: "bniarqdatabase.firebasestorage.app",
+    messagingSenderId: "257818104962",
+    appId: "1:257818104962:web:c5681ccc0f02a453f6509b",
+    measurementId: "G-00SC5P9160"
+};
+
+// Inicializar Firebase y Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
     initScrollAnimations();
     initDossierForm();
-    loadProfiles();
+    loadProfilesFromFirebase();
     initProfileRegistration();
     initNdaModal();
 });
@@ -75,39 +94,53 @@ function initDossierForm() {
 }
 
 // ==========================================
-// GESTIÓN DE PERFILES Y RED (LOCALSTORAGE + FOTOS)
+// GESTIÓN DE PERFILES EN LA NUBE (FIREBASE FIRESTORE)
 // ==========================================
-const defaultProfiles = [
-    { 
-        name: "Elena Aris Studio", 
-        role: "Diseño Residencial & Urbanismo", 
-        location: "Madrid, España", 
-        software: "Revit / BIM Level 3", 
-        photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop" 
-    },
-    { 
-        name: "Ingeniería Structuralia", 
-        role: "Cálculo de Estructuras Complejas", 
-        location: "Valencia, España", 
-        software: "CypeCAD / Tekla", 
-        photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop" 
-    },
-    { 
-        name: "EcoBuild Lab", 
-        role: "Consultoría Passivhaus & LEED", 
-        location: "Barcelona, España", 
-        software: "EnergyPlus / PHPP", 
-        photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop" 
-    }
-];
+let allProfilesCache = [];
 
-function loadProfiles() {
-    let savedProfiles = JSON.parse(localStorage.getItem('bniarq_profiles'));
-    if (!savedProfiles) {
-        savedProfiles = defaultProfiles;
-        localStorage.setItem('bniarq_profiles', JSON.stringify(savedProfiles));
+async function loadProfilesFromFirebase() {
+    const grid = document.getElementById('profilesGrid');
+    if (!grid) return;
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "perfiles"));
+        allProfilesCache = [];
+        
+        querySnapshot.forEach((doc) => {
+            allProfilesCache.push(doc.data());
+        });
+
+        // Si la base de datos está vacía, añadimos unos demos iniciales de ejemplo
+        if (allProfilesCache.length === 0) {
+            allProfilesCache = [
+                { 
+                    name: "Elena Aris Studio", 
+                    role: "Diseño Residencial & Urbanismo", 
+                    location: "Madrid, España", 
+                    software: "Revit / BIM Level 3", 
+                    photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop" 
+                },
+                { 
+                    name: "Ingeniería Structuralia", 
+                    role: "Cálculo de Estructuras Complejas", 
+                    location: "Valencia, España", 
+                    software: "CypeCAD / Tekla", 
+                    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop" 
+                },
+                { 
+                    name: "EcoBuild Lab", 
+                    role: "Consultoría Passivhaus & LEED", 
+                    location: "Barcelona, España", 
+                    software: "EnergyPlus / PHPP", 
+                    photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop" 
+                }
+            ];
+        }
+
+        renderProfiles(allProfilesCache);
+    } catch (error) {
+        console.error("Error al cargar perfiles de Firebase: ", error);
     }
-    renderProfiles(savedProfiles);
 }
 
 function renderProfiles(profiles) {
@@ -122,7 +155,7 @@ function renderProfiles(profiles) {
         card.innerHTML = `
             <div>
                 <div class="flex items-center gap-4 mb-4">
-                    <img src="${photoUrl}" alt="${p.name}" class="w-14 h-14 rounded-full object-cover border border-blue-500/30">
+                    <img src="${photoUrl}" alt="${p.name}" class="w-14 h-14 rounded-full object-cover border border-blue-500/35">
                     <div>
                         <h4 class="text-lg font-bold text-white leading-snug">${p.name}</h4>
                         <span class="text-[10px] uppercase tracking-wider bg-brand-dark px-2.5 py-0.5 rounded-full text-brand-muted border border-brand-border">${p.location}</span>
@@ -146,24 +179,37 @@ function initProfileRegistration() {
     const form = document.getElementById('profileForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.textContent = "Guardando en la nube...";
+        submitBtn.disabled = true;
+
         const newProfile = {
             name: document.getElementById('pName').value,
             role: document.getElementById('pRole').value,
             location: document.getElementById('pLocation').value,
             software: document.getElementById('pSoftware').value,
-            photo: document.getElementById('pPhoto').value
+            photo: document.getElementById('pPhoto').value,
+            createdAt: new Date().toISOString()
         };
 
-        let profiles = JSON.parse(localStorage.getItem('bniarq_profiles')) || [];
-        profiles.unshift(newProfile);
-        localStorage.setItem('bniarq_profiles', JSON.stringify(profiles));
-
-        renderProfiles(profiles);
-        form.reset();
-        alert('¡Perfil guardado y publicado con éxito en la red!');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        try {
+            await addDoc(collection(db, "perfiles"), newProfile);
+            
+            form.reset();
+            submitBtn.textContent = "Publicar Perfil en la Red";
+            submitBtn.disabled = false;
+            
+            alert('¡Perfil guardado en la nube con éxito! Ya es visible globalmente.');
+            loadProfilesFromFirebase(); 
+            document.getElementById('directorio').scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            console.error("Error al guardar en Firebase: ", error);
+            alert("Hubo un error al guardar el perfil.");
+            submitBtn.textContent = "Publicar Perfil en la Red";
+            submitBtn.disabled = false;
+        }
     });
 }
 
@@ -171,9 +217,8 @@ function filterProfiles() {
     const queryElement = document.getElementById('searchInput');
     if (!queryElement) return;
     const query = queryElement.value.toLowerCase();
-    const profiles = JSON.parse(localStorage.getItem('bniarq_profiles')) || defaultProfiles;
     
-    const filtered = profiles.filter(p => 
+    const filtered = allProfilesCache.filter(p => 
         p.name.toLowerCase().includes(query) || 
         p.role.toLowerCase().includes(query) || 
         p.location.toLowerCase().includes(query) ||
@@ -186,7 +231,6 @@ function filterProfiles() {
 // SISTEMA REAL DE NDA Y CONEXIÓN (MODAL)
 // ==========================================
 function initNdaModal() {
-    // Crear el contenedor modal dinámicamente si no existe
     if (document.getElementById('ndaModal')) return;
 
     const modalHTML = `
@@ -197,7 +241,7 @@ function initNdaModal() {
                 </button>
                 <div id="ndaFormContainer">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/30">
+                        <div class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/35">
                             <i data-lucide="folder-lock" class="w-5 h-5"></i>
                         </div>
                         <div>
@@ -219,7 +263,7 @@ function initNdaModal() {
                     </form>
                 </div>
                 <div id="ndaSuccessContainer" class="hidden text-center py-6">
-                    <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+                    <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/35">
                         <i data-lucide="check" class="w-7 h-7"></i>
                     </div>
                     <h4 class="text-xl font-bold text-white mb-2">¡NDA Firmado con Éxito!</h4>
@@ -235,10 +279,7 @@ function initNdaModal() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-let activeStudio = "";
-
-function openNdaModal(studioName) {
-    activeStudio = studioName;
+window.openNdaModal = function(studioName) {
     document.getElementById('targetStudioName').textContent = studioName;
     document.getElementById('ndaFormContainer').classList.remove('hidden');
     document.getElementById('ndaSuccessContainer').classList.add('hidden');
@@ -247,141 +288,16 @@ function openNdaModal(studioName) {
     const modal = document.getElementById('ndaModal');
     modal.classList.remove('hidden');
     setTimeout(() => modal.classList.remove('opacity-0'), 10);
-}
+};
 
-function closeNdaModal() {
+window.closeNdaModal = function() {
     const modal = document.getElementById('ndaModal');
     modal.classList.add('opacity-0');
     setTimeout(() => modal.classList.add('hidden'), 300);
-}
+};
 
-function submitNda(e) {
+window.submitNda = function(e) {
     e.preventDefault();
-    const email = document.getElementById('ndaEmail').value;
-    
-    // Simular proceso de firma digital y apertura de Secure Data Room
     document.getElementById('ndaFormContainer').classList.add('hidden');
     document.getElementById('ndaSuccessContainer').classList.remove('hidden');
-}
-
-// ==========================================
-// CHATBOT SIMULADO B2B
-// ==========================================
-let chatState = 0;
-let chatOpenFirstTime = true;
-
-function toggleChat() {
-    const win = document.getElementById('chat-window');
-    if (win) {
-        if (win.classList.contains('hidden')) {
-            win.classList.remove('hidden');
-            setTimeout(() => win.classList.add('chat-open'), 10);
-            if (chatOpenFirstTime) {
-                chatOpenFirstTime = false;
-                setTimeout(botGreeting, 500);
-            }
-        } else {
-            win.classList.remove('chat-open');
-            setTimeout(() => win.classList.add('hidden'), 300);
-        }
-    }
-}
-
-function botGreeting() {
-    showTyping();
-    setTimeout(() => {
-        hideTyping();
-        appendMessage('bot', 'Hola. Estás en el entorno de soporte de Bniarq.');
-        setTimeout(() => {
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                appendMessage('bot', '¿Tienes alguna duda sobre cómo funciona nuestro proceso de validación o necesitas hablar con alguien del equipo?');
-            }, 1000);
-        }, 600);
-    }, 800);
-}
-
-function handleChatEnter(e) {
-    if (e.key === 'Enter') sendUserMessage();
-}
-
-function sendUserMessage() {
-    const input = document.getElementById('chat-input');
-    if (!input) return;
-    const text = input.value.trim();
-    if (!text) return;
-    appendMessage('user', text);
-    input.value = ''; 
-    processBotResponse(text);
-}
-
-function appendMessage(sender, text) {
-    const chatMsg = document.getElementById('chat-messages');
-    if (!chatMsg) return;
-    const msgDiv = document.createElement('div');
-    msgDiv.className = sender === 'user' ? 'chat-msg-user' : 'chat-msg-bot';
-    msgDiv.innerHTML = text;
-    chatMsg.appendChild(msgDiv);
-    chatMsg.scrollTop = chatMsg.scrollHeight; 
-}
-
-function showTyping() {
-    const chatMsg = document.getElementById('chat-messages');
-    if (!chatMsg) return;
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'chat-typing';
-    typingDiv.id = 'typing-indicator';
-    typingDiv.innerHTML = '<span></span><span></span><span></span>';
-    chatMsg.appendChild(typingDiv);
-    chatMsg.scrollTop = chatMsg.scrollHeight;
-}
-
-function hideTyping() {
-    const indicator = document.getElementById('typing-indicator');
-    if (indicator) indicator.remove();
-}
-
-function processBotResponse(userText) {
-    showTyping();
-    setTimeout(() => {
-        hideTyping();
-        if (chatState === 0) {
-            appendMessage('bot', 'Comprendo. Nuestro modelo B2B requiere una evaluación inicial de cada perfil.');
-            chatState++;
-            setTimeout(() => {
-                showTyping();
-                setTimeout(() => {
-                    hideTyping();
-                    appendMessage('bot', 'Voy a transferir este chat a un consultor de nuestro equipo para que atienda tu consulta personalmente. ¿Te parece bien?');
-                }, 1200);
-            }, 600);
-        } else if (chatState === 1) {
-            appendMessage('bot', 'Conectando con un agente humano...');
-            setTimeout(() => {
-                showTyping();
-                setTimeout(() => {
-                    hideTyping();
-                    const chatMsg = document.getElementById('chat-messages');
-                    if (chatMsg) {
-                        const agentDiv = document.createElement('div');
-                        agentDiv.className = 'flex gap-3 items-start mt-2';
-                        agentDiv.style.animation = 'fadeInMsg 0.4s ease';
-                        agentDiv.innerHTML = `
-                            <div class="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center shrink-0">
-                                <span class="text-white text-xs font-bold">Eq</span>
-                            </div>
-                            <div class="bg-brand-dark border border-brand-border text-gray-200 rounded-xl rounded-tl-none p-3 text-sm">
-                                <strong class="text-white">Equipo Bniarq:</strong><br>
-                                Hola, soy parte del equipo. Veo que tienes interés en nuestro proceso. ¿Nos escribes desde un estudio de arquitectura o desde el lado de la construcción?
-                            </div>
-                        `;
-                        chatMsg.appendChild(agentDiv);
-                        chatMsg.scrollTop = chatMsg.scrollHeight;
-                    }
-                }, 2000); 
-            }, 800);
-            chatState++;
-        }
-    }, 1200);
-}
+};

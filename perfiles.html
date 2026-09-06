@@ -47,7 +47,6 @@
         .flex-center { display: flex; align-items: center; justify-content: center; }
         #chat-window, #inbox-window { transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
-        /* Skeleton Loading */
         .skeleton {
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
@@ -62,7 +61,7 @@
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
-        
+
         #toast-container {
             position: fixed;
             top: 20px;
@@ -96,41 +95,56 @@
         .toast-warning { background: #2e1a0a; border-color: #f59e0b; }
         .toast-info { background: #0a1a2e; border-color: #3b82f6; }
 
+        #unreadBadge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #030303;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+            animation: pulse-badge 1.5s infinite;
+            z-index: 10;
+        }
+        #unreadBadge.show { display: flex; }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .new-msg-toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #0a0a0a;
+            border: 1px solid #2563eb;
+            border-radius: 16px;
+            padding: 14px 20px;
+            max-width: 320px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: pointer;
+        }
+        .new-msg-toast.show { transform: translateX(0); opacity: 1; }
+        .new-msg-toast .sender { color: #2563eb; font-weight: 600; font-size: 0.8rem; }
+        .new-msg-toast .preview { color: #a1a1aa; font-size: 0.75rem; margin-top: 2px; }
+
         @media (max-width: 480px) {
             #toast-container { max-width: 90vw; right: 5vw; top: 10px; }
             .toast { font-size: 0.8rem; padding: 12px 16px; }
-            #chat-window, #inbox-window {
-                width: 95vw !important;
-                right: 2.5vw !important;
-                left: 2.5vw !important;
-                max-height: 70vh !important;
-                bottom: 80px !important;
-                border-radius: 16px !important;
-            }
-            #messagesFab { bottom: 80px !important; right: 20px !important; }
-            .chat-options-btn {
-                font-size: 0.7rem !important;
-                padding: 8px 12px !important;
-                width: 100% !important;
-            }
-            nav { padding: 10px 12px !important; }
-            nav .text-xl { font-size: 1rem !important; }
-            #inicio h1 { font-size: 2rem !important; }
-            #authModal .p-8, #profileEditorModal .p-8 { padding: 20px !important; }
-            #profilesGrid { gap: 12px !important; }
-            .bg-brand-card.p-6 { padding: 16px !important; }
-        }
-        @media (max-width: 640px) {
-            #chat-window, #inbox-window {
-                width: 90vw !important;
-                right: 5vw !important;
-                left: 5vw !important;
-                max-height: 80vh !important;
-                bottom: 80px !important;
-            }
-            #messagesFab { bottom: 80px !important; right: 20px !important; }
-            .chat-msg-user, .chat-msg-bot { max-width: 95% !important; font-size: 0.8rem !important; }
-            .chat-options-btn { font-size: 0.7rem !important; padding: 6px 10px !important; }
+            .new-msg-toast { max-width: 85vw; right: 7.5vw; bottom: 80px; }
         }
     </style>
 </head>
@@ -138,6 +152,12 @@
 
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
+
+    <!-- NOTIFICACIÓN FLOTANTE DE NUEVO MENSAJE -->
+    <div id="newMsgToast" class="new-msg-toast" onclick="toggleInbox()">
+        <div class="sender" id="msgSender">👤 Usuario</div>
+        <div class="preview" id="msgPreview">Nuevo mensaje</div>
+    </div>
 
     <!-- HEADER -->
     <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-4 px-6 md:px-12 flex items-center justify-between border-b border-transparent bg-brand-dark/90 backdrop-blur-md">
@@ -161,7 +181,6 @@
             <p class="text-sm text-brand-muted mt-2 max-w-2xl mx-auto">Conecta con los mejores profesionales del sector.</p>
         </div>
 
-        <!-- Buscador y Filtros -->
         <div class="max-w-3xl mx-auto mb-12">
             <div class="relative mb-4">
                 <i data-lucide="search" class="w-4 h-4 text-brand-muted absolute left-4 top-3.5"></i>
@@ -198,7 +217,7 @@
     <div id="messagesFab" class="hidden fixed bottom-24 right-6 z-50">
         <button onclick="toggleInbox()" class="relative bg-brand-card border border-brand-border hover:border-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105">
             <i data-lucide="mail" class="w-6 h-6"></i>
-            <span id="unreadDot" class="hidden absolute top-0 right-0 w-3.5 h-3.5 bg-blue-500 border-2 border-brand-dark rounded-full"></span>
+            <span id="unreadBadge">0</span>
         </button>
         <div id="inbox-window" class="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-brand-card border border-brand-border rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[480px]" style="transform: translateY(10px) scale(0.95); opacity: 0;">
             <div id="inboxListView" class="flex flex-col h-full">
@@ -226,10 +245,9 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODALES UNIFICADOS (MISMOS QUE INDEX.HTML) -->
+    <!-- MODALES UNIFICADOS -->
     <!-- ========================================== -->
     
-    <!-- MODAL DE AUTENTICACIÓN -->
     <div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative mx-4 max-h-[90vh] overflow-y-auto">
             <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -268,7 +286,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE 2FA -->
     <div id="2faModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
             <button onclick="close2FAModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -286,7 +303,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE EDICIÓN DE PERFIL -->
     <div id="profileEditorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative mx-4 max-h-[90vh] overflow-y-auto">
             <button onclick="closeProfileEditor()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -325,7 +341,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE NDA -->
     <div id="ndaModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
             <button onclick="closeNdaModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>

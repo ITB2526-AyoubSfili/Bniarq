@@ -106,9 +106,71 @@
         .toast-warning { background: #2e1a0a; border-color: #f59e0b; }
         .toast-info { background: #0a1a2e; border-color: #3b82f6; }
 
+        /* Badge de mensajes no leídos */
+        #unreadBadge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #030303;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+            animation: pulse-badge 1.5s infinite;
+            z-index: 10;
+        }
+        #unreadBadge.show {
+            display: flex;
+        }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Notificación flotante de nuevo mensaje */
+        .new-msg-toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #0a0a0a;
+            border: 1px solid #2563eb;
+            border-radius: 16px;
+            padding: 14px 20px;
+            max-width: 320px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: pointer;
+        }
+        .new-msg-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .new-msg-toast .sender {
+            color: #2563eb;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .new-msg-toast .preview {
+            color: #a1a1aa;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
         @media (max-width: 480px) {
             #toast-container { max-width: 90vw; right: 5vw; top: 10px; }
             .toast { font-size: 0.8rem; padding: 12px 16px; }
+            .new-msg-toast { max-width: 85vw; right: 7.5vw; bottom: 80px; }
         }
     </style>
 </head>
@@ -116,6 +178,12 @@
 
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
+
+    <!-- NOTIFICACIÓN FLOTANTE DE NUEVO MENSAJE -->
+    <div id="newMsgToast" class="new-msg-toast" onclick="toggleInbox()">
+        <div class="sender" id="msgSender">👤 Usuario</div>
+        <div class="preview" id="msgPreview">Nuevo mensaje</div>
+    </div>
 
     <!-- HEADER / NAVBAR -->
     <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-4 px-6 md:px-12 flex items-center justify-between border-b border-transparent">
@@ -297,7 +365,7 @@
     <div id="messagesFab" class="hidden fixed bottom-24 right-6 z-50">
         <button onclick="toggleInbox()" class="relative bg-brand-card border border-brand-border hover:border-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105">
             <i data-lucide="mail" class="w-6 h-6"></i>
-            <span id="unreadDot" class="hidden absolute top-0 right-0 w-3.5 h-3.5 bg-blue-500 border-2 border-brand-dark rounded-full"></span>
+            <span id="unreadBadge">0</span>
         </button>
         <div id="inbox-window" class="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-brand-card border border-brand-border rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[480px]" style="transform: translateY(10px) scale(0.95); opacity: 0;">
             <div id="inboxListView" class="flex flex-col h-full">

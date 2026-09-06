@@ -1,7 +1,7 @@
 // Importar funciones de Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
-    getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, updateDoc, getDocs as getDocs2,
+    getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc,
     query, where, orderBy, onSnapshot, serverTimestamp, limit
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
@@ -130,7 +130,6 @@ function showSkeletons(count = 6) {
 // ==========================================
 // NOTIFICACIONES DE MENSAJES
 // ==========================================
-
 function updateUnreadBadge(count) {
     const badge = document.getElementById('unreadBadge');
     if (!badge) return;
@@ -382,6 +381,189 @@ function renderProfiles(profiles) {
 }
 
 // ==========================================
+// CONTROL DE ROLES - FUNCIONES DE ADMIN
+// ==========================================
+
+async function getUserRole(uid) {
+    try {
+        const userDoc = await getDoc(doc(db, 'usuarios', uid));
+        if (!userDoc.exists()) return 'user';
+        return userDoc.data().role || 'user';
+    } catch (error) {
+        console.error('Error al obtener rol:', error);
+        return 'user';
+    }
+}
+
+async function isAdmin(uid) {
+    const role = await getUserRole(uid);
+    return role === 'admin';
+}
+
+async function isWorker(uid) {
+    const role = await getUserRole(uid);
+    return role === 'worker' || role === 'admin';
+}
+
+async function setUserRole(uid, role) {
+    try {
+        await updateDoc(doc(db, 'usuarios', uid), {
+            role: role,
+            updatedAt: serverTimestamp()
+        });
+        return true;
+    } catch (error) {
+        console.error('Error al asignar rol:', error);
+        return false;
+    }
+}
+
+async function promoteToWorker(uid, name, email, specialties = []) {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !(await isAdmin(currentUser.uid))) {
+        showToast('Solo los administradores pueden realizar esta acción.', 'error');
+        return false;
+    }
+
+    try {
+        // Actualizar rol en usuarios
+        await setUserRole(uid, 'worker');
+        
+        // Crear entrada en workers
+        await setDoc(doc(db, 'workers', uid), {
+            uid: uid,
+            name: name,
+            email: email,
+            role: 'soporte',
+            online: true,
+            activeTickets: 0,
+            maxTickets: 5,
+            specialties: specialties,
+            createdAt: serverTimestamp()
+        });
+        
+        showToast(`✅ ${name} ahora es trabajador.`, 'success');
+        return true;
+    } catch (error) {
+        console.error('Error al promover a trabajador:', error);
+        showToast('❌ Error al promover a trabajador.', 'error');
+        return false;
+    }
+}
+
+async function demoteFromWorker(uid) {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !(await isAdmin(currentUser.uid))) {
+        showToast('Solo los administradores pueden realizar esta acción.', 'error');
+        return false;
+    }
+
+    try {
+        await setUserRole(uid, 'user');
+        await deleteDoc(doc(db, 'workers', uid));
+        showToast('✅ Trabajador desactivado.', 'success');
+        return true;
+    } catch (error) {
+        console.error('Error al desactivar trabajador:', error);
+        showToast('❌ Error al desactivar trabajador.', 'error');
+        return false;
+    }
+}
+
+async function getAllUsers() {
+    try {
+        const snapshot = await getDocs(collection(db, 'usuarios'));
+        const users = [];
+        snapshot.forEach(doc => {
+            users.push({ uid: doc.id, ...doc.data() });
+        });
+        return users;
+    } catch (error) {
+        console.error('Error al obtener usuarios:', error);
+        return [];
+    }
+}
+
+// ==========================================
+// PANEL DE ADMIN - FUNCIONES
+// ==========================================
+
+async function loadAdminPanel() {
+    const users = await getAllUsers();
+    const list = document.getElementById('usersList');
+    const totalUsers = document.getElementById('totalUsers');
+    const totalWorkers = document.getElementById('totalWorkers');
+    
+    if (!list) return;
+    
+    if (users.length === 0) {
+        list.innerHTML = '<p class="text-sm text-brand-muted">No hay usuarios registrados.</p>';
+        return;
+    }
+    
+    let workerCount = 0;
+    list.innerHTML = '';
+    
+    users.forEach(user => {
+        const role = user.role || 'user';
+        if (role === 'worker' || role === 'admin') workerCount++;
+        
+        const isCurrentUser = user.uid === auth.currentUser?.uid;
+        const canManage = !isCurrentUser && (role !== 'admin' || auth.currentUser?.uid === user.uid);
+        
+        const card = document.createElement('div');
+        card.className = 'admin-user-card flex flex-col md:flex-row md:items-center justify-between gap-3';
+        card.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand-dark border border-brand-border flex items-center justify-center text-sm font-bold text-white">
+                    ${user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-white">${user.name || 'Sin nombre'}</p>
+                    <p class="text-xs text-brand-muted">${user.email || 'Sin email'}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="role-badge ${role}">${role === 'admin' ? '👑 Administrador' : role === 'worker' ? '🛠️ Trabajador' : '👤 Usuario'}</span>
+                ${!isCurrentUser && role !== 'admin' ? `
+                    ${role === 'user' ? `
+                        <button onclick="handlePromote('${user.uid}', '${user.name || 'Usuario'}', '${user.email || ''}')" class="btn-promote">
+                            + Hacer trabajador
+                        </button>
+                    ` : `
+                        <button onclick="handleDemote('${user.uid}')" class="btn-demote">
+                            Quitar trabajador
+                        </button>
+                    `}
+                ` : ''}
+                ${role === 'admin' ? '<span class="text-[10px] text-blue-400">🔒 Protegido</span>' : ''}
+                ${isCurrentUser ? '<span class="text-[10px] text-brand-muted">(Tú)</span>' : ''}
+            </div>
+        `;
+        list.appendChild(card);
+    });
+    
+    if (totalUsers) totalUsers.textContent = users.length;
+    if (totalWorkers) totalWorkers.textContent = workerCount;
+}
+
+// Funciones globales para los botones
+window.handlePromote = async function(uid, name, email) {
+    const specialties = prompt('Especialidades del trabajador (separadas por comas):', 'publicacion, mensajeria, cuenta');
+    if (specialties === null) return;
+    const specialtiesArray = specialties.split(',').map(s => s.trim()).filter(s => s);
+    await promoteToWorker(uid, name, email, specialtiesArray);
+    loadAdminPanel();
+};
+
+window.handleDemote = async function(uid) {
+    if (confirm('¿Estás seguro de que quieres quitar el rol de trabajador a este usuario?')) {
+        await demoteFromWorker(uid);
+        loadAdminPanel();
+    }
+};
+
+// ==========================================
 // INICIALIZACIÓN
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -395,6 +577,13 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfileEditor();
     init2FA();
     watchAuthState();
+    
+    // Cargar panel de admin si estamos en admin.html
+    if (window.location.pathname.includes('admin.html')) {
+        setTimeout(() => {
+            loadAdminPanel();
+        }, 1000);
+    }
 });
 
 // ==========================================
@@ -1256,7 +1445,8 @@ function initAuthForm() {
                         cargo: cargo,
                         email: email,
                         createdAt: serverTimestamp(),
-                        twoFAEnabled: false
+                        twoFAEnabled: false,
+                        role: 'user'
                     });
                     
                     closeAuthModal();
@@ -1336,7 +1526,8 @@ window.signInWithGoogle = async function() {
                     name: result.user.displayName || '',
                     email: result.user.email || '',
                     createdAt: serverTimestamp(),
-                    twoFAEnabled: false
+                    twoFAEnabled: false,
+                    role: 'user'
                 });
             }
         }
@@ -1352,6 +1543,9 @@ window.logout = async function() {
     await signOut(auth);
     if (conversationsUnsub) { conversationsUnsub(); conversationsUnsub = null; }
     loadProfilesFromFirebase();
+    if (window.location.pathname.includes('admin.html')) {
+        window.location.href = 'index.html';
+    }
 };
 
 function watchAuthState() {
@@ -1373,6 +1567,7 @@ function watchAuthState() {
             const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2563EB&color=fff`;
             
             const providerId = user.providerData?.[0]?.providerId || 'password';
+            const role = userData.role || 'user';
             
             currentUserProfile = {
                 uid: user.uid,
@@ -1385,7 +1580,8 @@ function watchAuthState() {
                 telefono: userData.telefono || '',
                 fechaNacimiento: userData.fechaNacimiento || '',
                 twoFAEnabled: userData.twoFAEnabled || false,
-                providerId: providerId
+                providerId: providerId,
+                role: role
             };
 
             const isGoogleUser = providerId === 'google.com';
@@ -1403,11 +1599,37 @@ function watchAuthState() {
                 }
             }
 
+            // Verificar si estamos en admin.html y el usuario no es admin
+            if (window.location.pathname.includes('admin.html') && role !== 'admin') {
+                showToast('No tienes permisos para acceder al panel de administración.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
+
+            // Construir menú con opciones según rol
+            let roleMenuItems = '';
+            if (role === 'admin') {
+                roleMenuItems = `
+                    <a href="admin.html" onclick="toggleAccountMenu()" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-brand-border transition flex items-center gap-2">
+                        <i data-lucide="shield" class="w-3.5 h-3.5"></i> Panel de Administración
+                    </a>
+                `;
+            } else if (role === 'worker') {
+                roleMenuItems = `
+                    <a href="soporte.html" onclick="toggleAccountMenu()" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-brand-border transition flex items-center gap-2">
+                        <i data-lucide="headphones" class="w-3.5 h-3.5"></i> Panel de Soporte
+                    </a>
+                `;
+            }
+
             const userHTML = `
                 <div class="relative">
                     <button onclick="toggleAccountMenu()" class="flex items-center gap-2 bg-brand-card border border-brand-border hover:border-blue-500 rounded-full pl-1.5 pr-3 py-1.5 transition">
                         <img src="${currentUserProfile.photo}" class="w-6 h-6 rounded-full object-cover" alt="avatar">
                         <span class="text-xs font-semibold text-white max-w-[100px] truncate">${currentUserProfile.name}</span>
+                        ${role !== 'user' ? `<span class="text-[8px] bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded-full">${role}</span>` : ''}
                     </button>
                     <div id="accountMenu" class="hidden absolute right-0 mt-2 w-56 bg-brand-card border border-brand-border rounded-2xl shadow-2xl overflow-hidden">
                         <div class="px-4 py-3 border-b border-brand-border">
@@ -1415,8 +1637,9 @@ function watchAuthState() {
                             <p class="text-[10px] text-brand-muted truncate">${currentUserProfile.email}</p>
                             ${currentUserProfile.empresa ? `<p class="text-[10px] text-brand-muted">${currentUserProfile.empresa}</p>` : ''}
                             ${currentUserProfile.twoFAEnabled ? `<p class="text-[10px] text-emerald-400">🔒 2FA Activado</p>` : `<p class="text-[10px] text-brand-muted">🔓 2FA Desactivado</p>`}
-                            ${isGoogleUser ? `<p class="text-[10px] text-blue-400">🔗 Google</p>` : ''}
+                            ${role !== 'user' ? `<p class="text-[10px] text-blue-400">🔐 ${role.toUpperCase()}</p>` : ''}
                         </div>
+                        ${roleMenuItems}
                         <button onclick="openProfileEditor(); toggleAccountMenu();" class="w-full text-left px-4 py-3 text-xs text-white hover:bg-brand-border transition flex items-center gap-2">
                             <i data-lucide="user-cog" class="w-3.5 h-3.5"></i> Editar perfil
                         </button>
@@ -1737,7 +1960,7 @@ window.filterProfiles = function() {
 };
 
 // ==========================================
-// MENSAJERÍA (CON NOTIFICACIONES)
+// MENSAJERÍA
 // ==========================================
 function conversationIdFor(uidA, uidB) {
     return [uidA, uidB].sort().join('_');
@@ -1916,13 +2139,12 @@ function openThread(convId, peer) {
         console.error('Error escuchando mensajes:', error);
     });
     
-    // Marcar como leído al abrir
     const qMsg = query(
         collection(db, 'conversations', convId, 'messages'),
         orderBy('createdAt', 'desc'),
         limit(1)
     );
-    getDocs2(qMsg).then((snapshot) => {
+    getDocs(qMsg).then((snapshot) => {
         if (!snapshot.empty) {
             const lastMsg = snapshot.docs[0];
             localStorage.setItem(`read_${convId}`, lastMsg.id);

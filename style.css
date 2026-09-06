@@ -269,7 +269,6 @@ body { background-color: #030303; }
     margin-top: 2px;
 }
 
-/* Admin Panel Styles */
 .admin-user-card {
     background: #0a0a0a;
     border: 1px solid #1f1f1f;
@@ -323,6 +322,109 @@ body { background-color: #030303; }
     color: #000;
 }
 
+.ticket-card {
+    background: #0a0a0a;
+    border: 1px solid #1f1f1f;
+    border-radius: 16px;
+    padding: 16px 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.ticket-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 0 30px rgba(37, 99, 235, 0.05);
+}
+
+.status-badge {
+    font-size: 9px;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status-badge.pending { background: #2e1a0a; color: #f59e0b; border: 1px solid #f59e0b; }
+.status-badge.in-progress { background: #0a1a2e; color: #3b82f6; border: 1px solid #3b82f6; }
+.status-badge.resolved { background: #0a2e1a; color: #22c55e; border: 1px solid #22c55e; }
+
+.btn-accept {
+    background: #0a2e1a;
+    color: #22c55e;
+    border: 1px solid #22c55e;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.btn-accept:hover {
+    background: #22c55e;
+    color: #000;
+}
+.btn-resolve {
+    background: #0a1a2e;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.btn-resolve:hover {
+    background: #3b82f6;
+    color: #000;
+}
+
+.chat-msg-worker {
+    background-color: #1a1a1a;
+    border: 1px solid #262626;
+    color: #e5e5e5;
+    border-radius: 12px 12px 12px 2px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    max-width: 85%;
+    align-self: flex-start;
+    animation: fadeInMsg 0.3s ease;
+    line-height: 1.4;
+}
+.chat-msg-client {
+    background-color: #2563EB;
+    color: #ffffff;
+    border-radius: 12px 12px 2px 12px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    max-width: 85%;
+    align-self: flex-end;
+    animation: fadeInMsg 0.3s ease;
+}
+
+.modal-overlay-chat {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal-overlay-chat.active {
+    display: flex;
+}
+.modal-content-chat {
+    background: #0a0a0a;
+    border: 1px solid #1f1f1f;
+    border-radius: 24px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
 @media (max-width: 640px) {
     #chat-window, #inbox-window {
         width: 90vw !important;
@@ -334,6 +436,12 @@ body { background-color: #030303; }
     #messagesFab { bottom: 80px !important; right: 20px !important; }
     .chat-msg-user, .chat-msg-bot { max-width: 95% !important; font-size: 0.8rem !important; }
     .chat-options-btn { font-size: 0.7rem !important; padding: 6px 10px !important; }
+    #toast-container { max-width: 90vw; right: 5vw; top: 10px; }
+    .toast { font-size: 0.8rem; padding: 12px 16px; }
+    .new-msg-toast { max-width: 85vw; right: 7.5vw; bottom: 80px; }
+    .ticket-card { padding: 12px 16px; }
+    .modal-content-chat { max-width: 100%; margin: 10px; border-radius: 16px; }
+    .admin-user-card { padding: 12px 16px; }
 }
 
 @media (max-width: 480px) {

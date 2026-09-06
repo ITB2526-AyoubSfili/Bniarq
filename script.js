@@ -43,6 +43,10 @@ let conversationsUnsub = null;
 let activeThreadUnsub = null;
 let activeConversationId = null;
 let activePeer = null;
+let currentTicketId = null;
+let currentTicketUnsub = null;
+let ticketsUnsub = null;
+let currentFilter = 'all';
 
 // Variables 2FA
 let pending2FAEmail = null;
@@ -57,6 +61,11 @@ let is2FAFlowActive = false;
 let unreadCount = 0;
 let newMsgToastTimeout = null;
 
+// Variables chatbot
+let chatOpenFirstTime = true;
+let chatStep = 0;
+let isBotResponding = false;
+
 // ==========================================
 // TOAST SYSTEM
 // ==========================================
@@ -67,30 +76,23 @@ function showToast(message, type = 'success') {
         container.id = 'toast-container';
         document.body.appendChild(container);
     }
-
     const classes = {
         success: 'toast-success',
         error: 'toast-error',
         warning: 'toast-warning',
         info: 'toast-info'
     };
-
     const icons = {
         success: '✅',
         error: '❌',
         warning: '⚠️',
         info: 'ℹ️'
     };
-
     const toast = document.createElement('div');
     toast.className = `toast ${classes[type] || classes.info}`;
     toast.innerHTML = `<span>${icons[type] || '📌'}</span> ${message}`;
     container.appendChild(toast);
-
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
+    requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => {
         toast.classList.remove('show');
         toast.classList.add('hide');
@@ -104,7 +106,6 @@ function showToast(message, type = 'success') {
 function showSkeletons(count = 6) {
     const grid = document.getElementById('profilesGrid');
     if (!grid) return;
-    
     grid.innerHTML = '';
     for (let i = 0; i < count; i++) {
         grid.innerHTML += `
@@ -133,7 +134,6 @@ function showSkeletons(count = 6) {
 function updateUnreadBadge(count) {
     const badge = document.getElementById('unreadBadge');
     if (!badge) return;
-    
     unreadCount = count;
     if (count > 0) {
         badge.textContent = count > 99 ? '99+' : count;
@@ -147,22 +147,15 @@ function showNewMessageNotification(senderName, messagePreview) {
     const toast = document.getElementById('newMsgToast');
     const senderEl = document.getElementById('msgSender');
     const previewEl = document.getElementById('msgPreview');
-    
     if (!toast || !senderEl || !previewEl) return;
-    
     if (newMsgToastTimeout) {
         clearTimeout(newMsgToastTimeout);
         toast.classList.remove('show');
     }
-    
     senderEl.textContent = `📨 ${senderName}`;
     previewEl.textContent = messagePreview.length > 50 ? messagePreview.substring(0, 50) + '...' : messagePreview;
-    
     setTimeout(() => toast.classList.add('show'), 100);
-    
-    newMsgToastTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-    }, 5000);
+    newMsgToastTimeout = setTimeout(() => toast.classList.remove('show'), 5000);
 }
 
 function playNotificationSound() {
@@ -273,27 +266,18 @@ const demoProfiles = [
 async function loadProfilesFromFirebase() {
     const grid = document.getElementById('profilesGrid');
     if (!grid) return;
-    
     showSkeletons(6);
-
     try {
         const querySnapshot = await getDocs(collection(db, "perfiles"));
         const firebaseProfiles = [];
-        
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            firebaseProfiles.push({
-                ...data,
-                ownerUid: data.ownerUid || `firebase_${doc.id}`
-            });
+            firebaseProfiles.push({ ...data, ownerUid: data.ownerUid || `firebase_${doc.id}` });
         });
-
         const existingNames = new Set(firebaseProfiles.map(p => p.name));
         const demoProfilesToAdd = demoProfiles.filter(p => !existingNames.has(p.name));
-        
         allProfilesCache = [...firebaseProfiles, ...demoProfilesToAdd];
         renderProfiles(allProfilesCache);
-        
         window.allProfilesCache = allProfilesCache;
         window.renderProfiles = renderProfiles;
     } catch (error) {
@@ -307,42 +291,22 @@ async function loadProfilesFromFirebase() {
 function renderProfiles(profiles) {
     const grid = document.getElementById('profilesGrid');
     if (!grid) return;
-    
     grid.innerHTML = '';
-    
     if (!profiles || profiles.length === 0) {
-        grid.innerHTML = `
-            <div class="col-span-full text-center py-12">
-                <i data-lucide="users" class="w-12 h-12 text-brand-muted mx-auto mb-4"></i>
-                <p class="text-brand-muted">No hay perfiles disponibles. ¡Sé el primero en publicar tu estudio!</p>
-            </div>
-        `;
+        grid.innerHTML = `<div class="col-span-full text-center py-12"><i data-lucide="users" class="w-12 h-12 text-brand-muted mx-auto mb-4"></i><p class="text-brand-muted">No hay perfiles disponibles. ¡Sé el primero en publicar tu estudio!</p></div>`;
         return;
     }
-    
     const countEl = document.getElementById('profilesCount');
-    if (countEl) {
-        countEl.textContent = `${profiles.length} profesionales en la red`;
-    }
-    
+    if (countEl) countEl.textContent = `${profiles.length} profesionales en la red`;
     profiles.forEach(p => {
         const photoUrl = p.photo && p.photo.trim() !== "" ? p.photo : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=400&auto=format&fit=crop";
         const card = document.createElement('div');
         card.className = "bg-brand-card border border-brand-border p-6 rounded-3xl flex flex-col justify-between hover:border-blue-500/50 transition duration-300 shadow-xl";
-        
         const isOwner = currentUserProfile && p.ownerUid === currentUserProfile.uid;
-        
         let especialidadesHTML = '';
         if (p.especialidades && p.especialidades.length > 0) {
-            especialidadesHTML = `
-                <div class="flex flex-wrap gap-1 mb-3">
-                    ${p.especialidades.slice(0, 3).map(esp => 
-                        `<span class="text-[9px] bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded-full">${esp}</span>`
-                    ).join('')}
-                </div>
-            `;
+            especialidadesHTML = `<div class="flex flex-wrap gap-1 mb-3">${p.especialidades.slice(0, 3).map(esp => `<span class="text-[9px] bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded-full">${esp}</span>`).join('')}</div>`;
         }
-        
         card.innerHTML = `
             <div>
                 <div class="flex items-center gap-4 mb-4">
@@ -354,24 +318,14 @@ function renderProfiles(profiles) {
                 </div>
                 <p class="text-xs font-semibold text-blue-400 mb-3">${p.role}</p>
                 ${especialidadesHTML}
-                <div class="text-xs text-brand-muted flex items-center gap-2 mb-6">
-                    <i data-lucide="cpu" class="w-4 h-4"></i> ${p.software}
-                </div>
+                <div class="text-xs text-brand-muted flex items-center gap-2 mb-6"><i data-lucide="cpu" class="w-4 h-4"></i> ${p.software}</div>
                 ${p.experiencia ? `<div class="text-xs text-brand-muted flex items-center gap-2 mb-2"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${p.experiencia} de experiencia</div>` : ''}
                 ${p.proyectos ? `<div class="text-xs text-brand-muted flex items-center gap-2 mb-2"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i> ${p.proyectos}</div>` : ''}
             </div>
             <div class="flex gap-2">
-                ${isOwner ? `
-                    <button class="flex-1 bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
-                        <i data-lucide="check" class="w-3.5 h-3.5"></i> Tu perfil
-                    </button>
-                ` : `
-                    <button onclick="openNdaModal('${p.name.replace(/'/g, "\\'")}')" class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition">
-                        Enviar NDA
-                    </button>
-                    <button onclick='startConversation(${JSON.stringify({ uid: p.ownerUid || null, name: p.name, photo: p.photo || "" }).replace(/'/g, "&#39;")})' class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
-                        <i data-lucide="mail" class="w-3.5 h-3.5"></i> Mensaje
-                    </button>
+                ${isOwner ? `<button class="flex-1 bg-emerald-600/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5"></i> Tu perfil</button>` : `
+                    <button onclick="openNdaModal('${p.name.replace(/'/g, "\\'")}')" class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition">Enviar NDA</button>
+                    <button onclick='startConversation(${JSON.stringify({ uid: p.ownerUid || null, name: p.name, photo: p.photo || "" }).replace(/'/g, "&#39;")})' class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5"><i data-lucide="mail" class="w-3.5 h-3.5"></i> Mensaje</button>
                 `}
             </div>
         `;
@@ -379,189 +333,6 @@ function renderProfiles(profiles) {
     });
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
-
-// ==========================================
-// CONTROL DE ROLES - FUNCIONES DE ADMIN
-// ==========================================
-
-async function getUserRole(uid) {
-    try {
-        const userDoc = await getDoc(doc(db, 'usuarios', uid));
-        if (!userDoc.exists()) return 'user';
-        return userDoc.data().role || 'user';
-    } catch (error) {
-        console.error('Error al obtener rol:', error);
-        return 'user';
-    }
-}
-
-async function isAdmin(uid) {
-    const role = await getUserRole(uid);
-    return role === 'admin';
-}
-
-async function isWorker(uid) {
-    const role = await getUserRole(uid);
-    return role === 'worker' || role === 'admin';
-}
-
-async function setUserRole(uid, role) {
-    try {
-        await updateDoc(doc(db, 'usuarios', uid), {
-            role: role,
-            updatedAt: serverTimestamp()
-        });
-        return true;
-    } catch (error) {
-        console.error('Error al asignar rol:', error);
-        return false;
-    }
-}
-
-async function promoteToWorker(uid, name, email, specialties = []) {
-    const currentUser = auth.currentUser;
-    if (!currentUser || !(await isAdmin(currentUser.uid))) {
-        showToast('Solo los administradores pueden realizar esta acción.', 'error');
-        return false;
-    }
-
-    try {
-        // Actualizar rol en usuarios
-        await setUserRole(uid, 'worker');
-        
-        // Crear entrada en workers
-        await setDoc(doc(db, 'workers', uid), {
-            uid: uid,
-            name: name,
-            email: email,
-            role: 'soporte',
-            online: true,
-            activeTickets: 0,
-            maxTickets: 5,
-            specialties: specialties,
-            createdAt: serverTimestamp()
-        });
-        
-        showToast(`✅ ${name} ahora es trabajador.`, 'success');
-        return true;
-    } catch (error) {
-        console.error('Error al promover a trabajador:', error);
-        showToast('❌ Error al promover a trabajador.', 'error');
-        return false;
-    }
-}
-
-async function demoteFromWorker(uid) {
-    const currentUser = auth.currentUser;
-    if (!currentUser || !(await isAdmin(currentUser.uid))) {
-        showToast('Solo los administradores pueden realizar esta acción.', 'error');
-        return false;
-    }
-
-    try {
-        await setUserRole(uid, 'user');
-        await deleteDoc(doc(db, 'workers', uid));
-        showToast('✅ Trabajador desactivado.', 'success');
-        return true;
-    } catch (error) {
-        console.error('Error al desactivar trabajador:', error);
-        showToast('❌ Error al desactivar trabajador.', 'error');
-        return false;
-    }
-}
-
-async function getAllUsers() {
-    try {
-        const snapshot = await getDocs(collection(db, 'usuarios'));
-        const users = [];
-        snapshot.forEach(doc => {
-            users.push({ uid: doc.id, ...doc.data() });
-        });
-        return users;
-    } catch (error) {
-        console.error('Error al obtener usuarios:', error);
-        return [];
-    }
-}
-
-// ==========================================
-// PANEL DE ADMIN - FUNCIONES
-// ==========================================
-
-async function loadAdminPanel() {
-    const users = await getAllUsers();
-    const list = document.getElementById('usersList');
-    const totalUsers = document.getElementById('totalUsers');
-    const totalWorkers = document.getElementById('totalWorkers');
-    
-    if (!list) return;
-    
-    if (users.length === 0) {
-        list.innerHTML = '<p class="text-sm text-brand-muted">No hay usuarios registrados.</p>';
-        return;
-    }
-    
-    let workerCount = 0;
-    list.innerHTML = '';
-    
-    users.forEach(user => {
-        const role = user.role || 'user';
-        if (role === 'worker' || role === 'admin') workerCount++;
-        
-        const isCurrentUser = user.uid === auth.currentUser?.uid;
-        const canManage = !isCurrentUser && (role !== 'admin' || auth.currentUser?.uid === user.uid);
-        
-        const card = document.createElement('div');
-        card.className = 'admin-user-card flex flex-col md:flex-row md:items-center justify-between gap-3';
-        card.innerHTML = `
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-brand-dark border border-brand-border flex items-center justify-center text-sm font-bold text-white">
-                    ${user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-white">${user.name || 'Sin nombre'}</p>
-                    <p class="text-xs text-brand-muted">${user.email || 'Sin email'}</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3 flex-wrap">
-                <span class="role-badge ${role}">${role === 'admin' ? '👑 Administrador' : role === 'worker' ? '🛠️ Trabajador' : '👤 Usuario'}</span>
-                ${!isCurrentUser && role !== 'admin' ? `
-                    ${role === 'user' ? `
-                        <button onclick="handlePromote('${user.uid}', '${user.name || 'Usuario'}', '${user.email || ''}')" class="btn-promote">
-                            + Hacer trabajador
-                        </button>
-                    ` : `
-                        <button onclick="handleDemote('${user.uid}')" class="btn-demote">
-                            Quitar trabajador
-                        </button>
-                    `}
-                ` : ''}
-                ${role === 'admin' ? '<span class="text-[10px] text-blue-400">🔒 Protegido</span>' : ''}
-                ${isCurrentUser ? '<span class="text-[10px] text-brand-muted">(Tú)</span>' : ''}
-            </div>
-        `;
-        list.appendChild(card);
-    });
-    
-    if (totalUsers) totalUsers.textContent = users.length;
-    if (totalWorkers) totalWorkers.textContent = workerCount;
-}
-
-// Funciones globales para los botones
-window.handlePromote = async function(uid, name, email) {
-    const specialties = prompt('Especialidades del trabajador (separadas por comas):', 'publicacion, mensajeria, cuenta');
-    if (specialties === null) return;
-    const specialtiesArray = specialties.split(',').map(s => s.trim()).filter(s => s);
-    await promoteToWorker(uid, name, email, specialtiesArray);
-    loadAdminPanel();
-};
-
-window.handleDemote = async function(uid) {
-    if (confirm('¿Estás seguro de que quieres quitar el rol de trabajador a este usuario?')) {
-        await demoteFromWorker(uid);
-        loadAdminPanel();
-    }
-};
 
 // ==========================================
 // INICIALIZACIÓN
@@ -577,12 +348,23 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfileEditor();
     init2FA();
     watchAuthState();
-    
-    // Cargar panel de admin si estamos en admin.html
     if (window.location.pathname.includes('admin.html')) {
-        setTimeout(() => {
-            loadAdminPanel();
-        }, 1000);
+        setTimeout(() => loadAdminPanel(), 1000);
+    }
+    if (window.location.pathname.includes('soporte.html')) {
+        const checkUser = setInterval(async () => {
+            const user = auth.currentUser;
+            if (user) {
+                clearInterval(checkUser);
+                const role = await getUserRole(user.uid);
+                if (role !== 'worker' && role !== 'admin') {
+                    showToast('No tienes permisos para acceder al panel de soporte.', 'error');
+                    setTimeout(() => window.location.href = 'index.html', 2000);
+                    return;
+                }
+                loadTickets();
+            }
+        }, 500);
     }
 });
 
@@ -597,7 +379,6 @@ function initScrollAnimations() {
         });
     }, { threshold: 0.15 }); 
     reveals.forEach(reveal => observer.observe(reveal));
-
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
         if (navbar) {
@@ -613,24 +394,20 @@ function initScrollAnimations() {
 function initDossierForm() {
     const form = document.getElementById('dossierForm');
     const FORMSPREE_URL = "https://formspree.io/f/xaeyejkn";
-
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitDossier');
             const content = document.getElementById('formContent');
             const success = document.getElementById('dossierSuccess');
-
             btn.innerHTML = '<span class="loading-spinner align-middle"></span> <span class="ml-2">Procesando...</span>';
             btn.classList.add('pointer-events-none', 'opacity-80');
-
             const link = document.createElement('a');
             link.href = 'dossier_bniarq.pdf';
             link.download = 'Dossier_Ejecutivo_Bniarq.pdf';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
             setTimeout(() => {
                 if (content && success) {
                     content.style.opacity = '0';
@@ -644,7 +421,6 @@ function initDossierForm() {
                 btn.innerHTML = 'Descargar Dossier PDF';
                 btn.classList.remove('pointer-events-none', 'opacity-80');
             }, 1500);
-
             const formData = new FormData(form);
             fetch(FORMSPREE_URL, {
                 method: 'POST',
@@ -668,7 +444,6 @@ function compressImage(file, callback) {
             const MAX_HEIGHT = 400;
             let width = img.width;
             let height = img.height;
-
             if (width > height && width > MAX_WIDTH) {
                 height *= MAX_WIDTH / width;
                 width = MAX_WIDTH;
@@ -676,7 +451,6 @@ function compressImage(file, callback) {
                 width *= MAX_HEIGHT / height;
                 height = MAX_HEIGHT;
             }
-
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
@@ -692,24 +466,19 @@ function compressImage(file, callback) {
 function initProfileRegistration() {
     const form = document.getElementById('profileForm');
     if (!form) return;
-
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         if (!auth.currentUser) {
             showToast('Inicia sesión antes de publicar tu perfil.', 'warning');
             openAuthModal('login');
             return;
         }
-
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = "Procesando imagen y guardando...";
         submitBtn.disabled = true;
-
         const fileInput = document.getElementById('pPhotoFile');
         let photoData = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=400&auto=format&fit=crop";
-
         const saveToFirestore = async (finalPhotoUrl) => {
             const newProfile = {
                 name: document.getElementById('pName').value,
@@ -721,7 +490,6 @@ function initProfileRegistration() {
                 ownerEmail: auth.currentUser.email || "",
                 createdAt: serverTimestamp()
             };
-
             try {
                 await addDoc(collection(db, "perfiles"), newProfile);
                 form.reset();
@@ -737,7 +505,6 @@ function initProfileRegistration() {
                 submitBtn.disabled = false;
             }
         };
-
         if (fileInput && fileInput.files && fileInput.files[0]) {
             compressImage(fileInput.files[0], (compressedImg) => {
                 saveToFirestore(compressedImg);
@@ -758,12 +525,10 @@ window.openNdaModal = function(studioName) {
     const container = document.getElementById('ndaFormContainer');
     const success = document.getElementById('ndaSuccessContainer');
     const email = document.getElementById('ndaEmail');
-    
     if (target) target.textContent = studioName;
     if (container) container.classList.remove('hidden');
     if (success) success.classList.add('hidden');
     if (email) email.value = '';
-    
     const modal = document.getElementById('ndaModal');
     if (modal) {
         modal.classList.remove('hidden-modal');
@@ -803,23 +568,19 @@ async function send2FACodeByEmail(email, name, code) {
         if (typeof emailjs === 'undefined') {
             await loadEmailJS();
         }
-        
         const templateParams = {
             to_email: email,
             name: name || email.split('@')[0] || 'Usuario',
             code: code
         };
-        
         console.log('📧 Enviando email 2FA a:', email);
         console.log('📧 Código:', code);
-        
         const response = await emailjs.send(
             EMAILJS_CONFIG.SERVICE_ID,
             EMAILJS_CONFIG.TEMPLATE_ID,
             templateParams,
             EMAILJS_CONFIG.PUBLIC_KEY
         );
-        
         console.log('✅ Email 2FA enviado con éxito');
         showToast(`Código enviado a ${email}`, 'success');
         return true;
@@ -853,14 +614,11 @@ function loadEmailJS() {
 
 async function start2FAFlow(email, name) {
     console.log('🚀 Iniciando flujo 2FA para:', email);
-    
     if (twoFATimeout) {
         clearTimeout(twoFATimeout);
         twoFATimeout = null;
     }
-    
     is2FAFlowActive = true;
-    
     return new Promise((resolve) => {
         const code = generate2FACode();
         pending2FACode = code;
@@ -868,31 +626,25 @@ async function start2FAFlow(email, name) {
         pending2FAName = name || email.split('@')[0] || 'Usuario';
         pending2FATimestamp = Date.now();
         pending2FAResolve = resolve;
-        
         send2FACodeByEmail(email, pending2FAName, code);
-        
         const modal = document.getElementById('2faModal');
         if (modal) {
             modal.classList.remove('hidden-modal');
             modal.classList.add('flex-center');
             modal.style.opacity = '0';
             setTimeout(() => modal.style.opacity = '1', 10);
-            
             const codeInput = document.getElementById('2faCode');
             if (codeInput) {
                 codeInput.value = '';
                 setTimeout(() => codeInput.focus(), 300);
             }
-            
             const errorEl = document.getElementById('2faError');
             if (errorEl) errorEl.classList.add('hidden');
-            
             const submitBtn = document.getElementById('2faSubmitBtn');
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Verificar y Acceder';
             }
-            
             const subtitle = document.getElementById('2faSubtitle');
             if (subtitle) {
                 subtitle.innerHTML = `
@@ -907,7 +659,6 @@ async function start2FAFlow(email, name) {
             resolve(false);
             return;
         }
-        
         twoFATimeout = setTimeout(() => {
             pending2FACode = null;
             is2FAFlowActive = false;
@@ -924,55 +675,43 @@ async function start2FAFlow(email, name) {
 window.verify2FACode = async function(e) {
     e.preventDefault();
     console.log('🔐 Verificando código 2FA...');
-    
     const codeInput = document.getElementById('2faCode');
     const errorEl = document.getElementById('2faError');
     const submitBtn = document.getElementById('2faSubmitBtn');
-    
     if (!codeInput || !errorEl || !submitBtn) {
         console.error('❌ Elementos del modal no encontrados');
         return;
     }
-    
     const enteredCode = codeInput.value.trim();
     console.log('📝 Código introducido:', enteredCode);
     console.log('📝 Código esperado:', pending2FACode);
-    
     if (enteredCode.length !== 6 || !/^\d{6}$/.test(enteredCode)) {
         errorEl.textContent = '❌ El código debe tener 6 dígitos numéricos.';
         errorEl.classList.remove('hidden');
         return;
     }
-    
     submitBtn.disabled = true;
     submitBtn.textContent = 'Verificando...';
-    
     try {
         if (pending2FATimestamp && (Date.now() - pending2FATimestamp) > 300000) {
             throw new Error('⏰ El código ha expirado. Solicita uno nuevo.');
         }
-        
         if (enteredCode === pending2FACode) {
             console.log('✅ Código verificado correctamente');
             errorEl.classList.add('hidden');
-            
             if (twoFATimeout) {
                 clearTimeout(twoFATimeout);
                 twoFATimeout = null;
             }
-            
             close2FAModal();
             sessionStorage.setItem('2fa_verified', 'true');
             is2FAFlowActive = false;
-            
             if (pending2FAResolve) {
                 pending2FAResolve(true);
                 pending2FAResolve = null;
             }
-            
             showToast('✅ ¡Verificación 2FA completada con éxito!', 'success');
             loadProfilesFromFirebase();
-            
         } else {
             console.log('❌ Código incorrecto');
             errorEl.textContent = '❌ Código incorrecto. Inténtalo de nuevo.';
@@ -1002,17 +741,14 @@ window.close2FAModal = function() {
             modal.classList.remove('flex-center');
         }, 300);
     }
-    
     if (twoFATimeout) {
         clearTimeout(twoFATimeout);
         twoFATimeout = null;
     }
-    
     if (pending2FAResolve) {
         pending2FAResolve(false);
         pending2FAResolve = null;
     }
-    
     pending2FACode = null;
     is2FAFlowActive = false;
 };
@@ -1023,9 +759,7 @@ window.resend2FACode = function() {
         const newCode = generate2FACode();
         pending2FACode = newCode;
         pending2FATimestamp = Date.now();
-        
         send2FACodeByEmail(pending2FAEmail, pending2FAName, newCode);
-        
         const errorEl = document.getElementById('2faError');
         if (errorEl) {
             errorEl.textContent = '✅ Nuevo código enviado. Revisa tu correo.';
@@ -1049,7 +783,6 @@ window.resend2FACode = function() {
 function init2FA() {
     loadEmailJS();
     console.log('🔐 2FA inicializado con EmailJS');
-    
     const modal = document.getElementById('2faModal');
     if (modal) {
         console.log('✅ Modal 2FA encontrado en el DOM');
@@ -1061,18 +794,12 @@ function init2FA() {
 // ==========================================
 // CHATBOT
 // ==========================================
-let chatOpenFirstTime = true;
-let chatStep = 0;
-let isBotResponding = false;
-
 window.toggleChat = function() {
     const win = document.getElementById('chat-window');
     if (!win) return;
-    
     if (win.classList.contains('hidden')) {
         win.classList.remove('hidden');
         setTimeout(() => win.classList.add('chat-open'), 10);
-        
         if (chatOpenFirstTime) {
             chatOpenFirstTime = false;
             chatStep = 0;
@@ -1109,21 +836,18 @@ function botGreeting() {
 function showOptionsButtons() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
-    
     const oldOptions = document.getElementById('chat-options');
     if (oldOptions) oldOptions.remove();
-    
     const optionsDiv = document.createElement('div');
     optionsDiv.className = 'flex flex-wrap gap-2 mt-2';
     optionsDiv.id = 'chat-options';
-    
     const options = [
         { text: '📋 ¿Cómo publicar mi estudio?', value: 'publicar' },
         { text: '🤝 ¿Cómo funciona la red?', value: 'red' },
         { text: '🔐 Seguridad y 2FA', value: 'seguridad' },
-        { text: '📞 Contactar con soporte', value: 'soporte' }
+        { text: '📞 Contactar con soporte', value: 'soporte' },
+        { text: '🔄 Hablar con un agente humano', value: 'agente' }
     ];
-    
     options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'chat-options-btn';
@@ -1136,7 +860,6 @@ function showOptionsButtons() {
         };
         optionsDiv.appendChild(btn);
     });
-    
     container.appendChild(optionsDiv);
     container.scrollTop = container.scrollHeight;
 }
@@ -1144,14 +867,10 @@ function showOptionsButtons() {
 function processOptionClick(option) {
     if (isBotResponding) return;
     isBotResponding = true;
-    
     showTyping();
-    
     setTimeout(() => {
         hideTyping();
-        
         let response = '';
-        
         switch(option) {
             case 'publicar':
                 response = `📋 **Publicar tu estudio en Bniarq es muy sencillo:**
@@ -1168,7 +887,6 @@ function processOptionClick(option) {
 
 ✅ ¡Y ya formas parte de la red!`;
                 break;
-                
             case 'red':
                 response = `🤝 **La red Bniarq conecta profesionales del sector AEC:**
 
@@ -1183,7 +901,6 @@ function processOptionClick(option) {
 3. Comparten proyectos y colaboran
 4. Gestionan acuerdos de confidencialidad (NDA)`;
                 break;
-                
             case 'seguridad':
                 response = `🔐 **Seguridad en Bniarq**
 
@@ -1198,7 +915,6 @@ Implementamos múltiples capas de seguridad:
 **¿Quieres activar el 2FA?**
 Ve a tu perfil → Editar perfil → Seguridad → Activa el switch de 2FA`;
                 break;
-                
             case 'soporte':
                 response = `📞 **Contactar con soporte**
 
@@ -1211,24 +927,89 @@ Puedes contactar con nosotros de varias formas:
 **Horario de atención:**
 Lunes a Viernes: 9:00 - 18:00 (CET)`;
                 break;
-                
+            case 'agente':
+                response = `🔄 **¿Necesitas hablar con un agente humano?**
+
+Un miembro de nuestro equipo de soporte se pondrá en contacto contigo lo antes posible.
+
+📝 Por favor, descríbenos brevemente tu problema:`;
+                appendMessage('bot', response);
+                const problemDiv = document.createElement('div');
+                problemDiv.className = 'flex gap-2 mt-2 w-full';
+                problemDiv.innerHTML = `
+                    <input type="text" id="problemInput" placeholder="Escribe tu problema..." class="flex-1 bg-brand-card border border-brand-border rounded-xl px-3 py-2 text-xs text-white placeholder-brand-muted focus:border-blue-500 outline-none">
+                    <button onclick="submitProblem()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">Enviar</button>
+                `;
+                const container = document.getElementById('chat-messages');
+                if (container) { container.appendChild(problemDiv); container.scrollTop = container.scrollHeight; }
+                isBotResponding = false;
+                return;
             default:
                 response = '📌 No he entendido tu selección. ¿Puedes intentarlo de nuevo?';
         }
-        
         appendMessage('bot', response);
-        
-        setTimeout(() => {
-            showOptionsButtons();
-            isBotResponding = false;
-        }, 800);
+        setTimeout(() => { showOptionsButtons(); isBotResponding = false; }, 800);
     }, 1200);
+}
+
+window.submitProblem = async function() {
+    const input = document.getElementById('problemInput');
+    if (!input) return;
+    const problem = input.value.trim();
+    if (!problem) { showToast('Por favor, describe tu problema.', 'warning'); return; }
+    input.parentElement.remove();
+    appendMessage('user', problem);
+    const user = auth.currentUser;
+    if (!user) { showToast('Debes iniciar sesión para contactar con soporte.', 'warning'); return; }
+    showToast('🔄 Creando ticket de soporte...', 'info');
+    try {
+        const ticketData = {
+            userId: user.uid,
+            userEmail: user.email || '',
+            userName: currentUserProfile?.name || 'Usuario',
+            message: problem,
+            status: 'pending',
+            priority: 'medium',
+            assignedTo: null,
+            assignedByName: null,
+            createdAt: serverTimestamp()
+        };
+        const docRef = await addDoc(collection(db, 'tickets'), ticketData);
+        appendMessage('bot', `
+✅ **¡Ticket creado con éxito!**
+
+📋 **ID del ticket:** #${docRef.id.substring(0, 8)}
+👤 **Agente asignado:** En breve
+📝 **Problema:** ${problem}
+
+Un agente de soporte te atenderá en esta conversación cuando lo acepte.
+        `);
+        showToast('✅ Ticket creado. Un agente te atenderá pronto.', 'success');
+        listenTicket(docRef.id);
+    } catch (error) {
+        console.error('Error al crear ticket:', error);
+        showToast('Error al crear el ticket.', 'error');
+    }
+};
+
+function listenTicket(ticketId) {
+    const q = query(collection(db, 'ticket_messages', ticketId, 'messages'), orderBy('createdAt', 'asc'));
+    const unsub = onSnapshot(q, (snapshot) => {
+        snapshot.forEach(docSnap => {
+            const msg = docSnap.data();
+            if (msg.senderId !== auth.currentUser?.uid) {
+                const sender = msg.senderName || 'Agente';
+                appendMessage('bot', `👤 **${sender}:** ${msg.text}`);
+                playNotificationSound();
+            }
+        });
+    }, (error) => { console.error('Error al escuchar mensajes:', error); });
+    window._ticketUnsub = unsub;
 }
 
 function appendMessage(sender, text) {
     const container = document.getElementById('chat-messages');
     if (!container) return;
-    
     const msgDiv = document.createElement('div');
     msgDiv.className = sender === 'user' ? 'chat-msg-user' : 'chat-msg-bot';
     msgDiv.innerHTML = text.replace(/\n/g, '<br>');
@@ -1256,21 +1037,16 @@ function hideTyping() {
 window.sendUserMessage = function() {
     const input = document.getElementById('chat-input');
     const btn = document.getElementById('chatSendBtn');
-    
     if (!input) return;
     const text = input.value.trim();
     if (!text) return;
-    
     if (isBotResponding) return;
-    
     const options = document.getElementById('chat-options');
     if (options) options.remove();
-    
     if (btn) {
         btn.disabled = true;
         btn.textContent = '...';
     }
-    
     appendMessage('user', text);
     input.value = '';
     processUserMessage(text, btn);
@@ -1279,15 +1055,11 @@ window.sendUserMessage = function() {
 function processUserMessage(userText, btn) {
     if (isBotResponding) return;
     isBotResponding = true;
-    
     showTyping();
-    
     setTimeout(() => {
         hideTyping();
-        
         let response = '';
         const lowerText = userText.toLowerCase();
-        
         if (lowerText.includes('publicar') || lowerText.includes('estudio') || lowerText.includes('registro')) {
             response = '📋 Para publicar tu estudio, ve a la sección "Unirme / Publicar" y completa el formulario. ¿Necesitas ayuda con algún campo en concreto?';
         } else if (lowerText.includes('2fa') || lowerText.includes('seguridad') || lowerText.includes('contraseña')) {
@@ -1299,14 +1071,9 @@ function processUserMessage(userText, btn) {
         } else {
             response = '📌 No estoy seguro de haber entendido. ¿Puedes elegir una de las opciones que te muestro?';
         }
-        
         appendMessage('bot', response);
         isBotResponding = false;
-        
-        setTimeout(() => {
-            showOptionsButtons();
-        }, 600);
-        
+        setTimeout(() => { showOptionsButtons(); }, 600);
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'Enviar';
@@ -1350,21 +1117,17 @@ function applyAuthMode() {
     const submitBtn = document.getElementById('authSubmitBtn');
     const switchText = document.getElementById('authSwitchText');
     const switchBtn = document.getElementById('authSwitchBtn');
-    
     const fields = [
         'authNameField', 'authApellidoField', 'authFechaNacField',
         'authTelefonoField', 'authEmpresaField', 'authCargoField',
         'authConfirmPasswordField', 'authTerminosField'
     ];
-    
     const isLogin = authMode === 'login';
-    
     if (title) title.textContent = isLogin ? 'Iniciar sesión' : 'Crear cuenta profesional';
     if (subtitle) subtitle.textContent = isLogin ? 'Accede a tu cuenta Bniarq' : 'Completa todos los datos para unirte';
     if (submitBtn) submitBtn.textContent = isLogin ? 'Iniciar sesión' : 'Crear cuenta';
     if (switchText) switchText.textContent = isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?';
     if (switchBtn) switchBtn.textContent = isLogin ? 'Regístrate' : 'Inicia sesión';
-    
     fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -1398,7 +1161,6 @@ function translateAuthError(code) {
 function initAuthForm() {
     const form = document.getElementById('authForm');
     if (!form) return;
-
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('authEmail').value.trim();
@@ -1409,7 +1171,6 @@ function initAuthForm() {
         submitBtn.textContent = 'Procesando...';
         const errorEl = document.getElementById('authError');
         if (errorEl) errorEl.classList.add('hidden');
-
         try {
             if (authMode === 'register') {
                 const name = document.getElementById('authName').value.trim();
@@ -1420,7 +1181,6 @@ function initAuthForm() {
                 const cargo = document.getElementById('authCargo').value.trim();
                 const confirmPassword = document.getElementById('authConfirmPassword').value;
                 const terminos = document.getElementById('authTerminos');
-
                 if (!name) { showAuthError('El nombre completo es obligatorio.'); throw new Error('Nombre requerido'); }
                 if (!apellido) { showAuthError('Los apellidos son obligatorios.'); throw new Error('Apellidos requeridos'); }
                 if (!fechaNac) { showAuthError('La fecha de nacimiento es obligatoria.'); throw new Error('Fecha nacimiento requerida'); }
@@ -1429,30 +1189,20 @@ function initAuthForm() {
                 if (!cargo) { showAuthError('Tu cargo/especialidad es obligatorio.'); throw new Error('Cargo requerido'); }
                 if (password !== confirmPassword) { showAuthError('Las contraseñas no coinciden.'); throw new Error('Contraseñas no coinciden'); }
                 if (!terminos.checked) { showAuthError('Debes aceptar los términos y condiciones.'); throw new Error('Términos no aceptados'); }
-                
                 try {
                     const cred = await createUserWithEmailAndPassword(auth, email, password);
                     if (name) {
                         await updateProfile(cred.user, { displayName: `${name} ${apellido}` });
                     }
-                    
                     await setDoc(doc(db, 'usuarios', cred.user.uid), {
-                        name: name,
-                        apellido: apellido,
-                        fechaNacimiento: fechaNac,
-                        telefono: telefono,
-                        empresa: empresa,
-                        cargo: cargo,
-                        email: email,
-                        createdAt: serverTimestamp(),
-                        twoFAEnabled: false,
-                        role: 'user'
+                        name: name, apellido: apellido, fechaNacimiento: fechaNac,
+                        telefono: telefono, empresa: empresa, cargo: cargo,
+                        email: email, createdAt: serverTimestamp(),
+                        twoFAEnabled: false, role: 'user'
                     });
-                    
                     closeAuthModal();
                     form.reset();
                     loadProfilesFromFirebase();
-                    
                 } catch (registerError) {
                     if (registerError.code === 'auth/email-already-in-use') {
                         if (errorEl) {
@@ -1460,7 +1210,6 @@ function initAuthForm() {
                             errorEl.classList.remove('hidden');
                             errorEl.classList.add('text-yellow-400');
                             errorEl.classList.remove('text-red-400');
-                            
                             const switchBtn = document.createElement('button');
                             switchBtn.textContent = 'Iniciar sesión';
                             switchBtn.className = 'text-blue-400 hover:text-blue-300 font-semibold ml-2 underline';
@@ -1482,12 +1231,10 @@ function initAuthForm() {
                 }
             } else {
                 await signInWithEmailAndPassword(auth, email, password);
-                
                 const user = auth.currentUser;
                 if (user) {
                     const userDoc = await getDoc(doc(db, 'usuarios', user.uid));
                     const userData = userDoc.exists() ? userDoc.data() : {};
-                    
                     if (userData.twoFAEnabled === true) {
                         const verified = await start2FAFlow(user.email, userData.name);
                         if (!verified) {
@@ -1497,7 +1244,6 @@ function initAuthForm() {
                         }
                     }
                 }
-                
                 closeAuthModal();
                 form.reset();
                 loadProfilesFromFirebase();
@@ -1543,7 +1289,7 @@ window.logout = async function() {
     await signOut(auth);
     if (conversationsUnsub) { conversationsUnsub(); conversationsUnsub = null; }
     loadProfilesFromFirebase();
-    if (window.location.pathname.includes('admin.html')) {
+    if (window.location.pathname.includes('admin.html') || window.location.pathname.includes('soporte.html')) {
         window.location.href = 'index.html';
     }
 };
@@ -1551,7 +1297,6 @@ window.logout = async function() {
 function watchAuthState() {
     onAuthStateChanged(auth, async (user) => {
         const authArea = document.getElementById('authArea');
-        
         if (user) {
             let userData = {};
             try {
@@ -1562,32 +1307,22 @@ function watchAuthState() {
             } catch (e) {
                 console.error('Error al obtener datos de usuario:', e);
             }
-            
             const displayName = userData.name || user.displayName || user.email?.split('@')[0] || 'Usuario';
             const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2563EB&color=fff`;
-            
             const providerId = user.providerData?.[0]?.providerId || 'password';
             const role = userData.role || 'user';
-            
             currentUserProfile = {
-                uid: user.uid,
-                name: displayName,
-                email: user.email || '',
-                photo: photoURL,
-                apellido: userData.apellido || '',
-                empresa: userData.empresa || '',
-                cargo: userData.cargo || '',
+                uid: user.uid, name: displayName, email: user.email || '',
+                photo: photoURL, apellido: userData.apellido || '',
+                empresa: userData.empresa || '', cargo: userData.cargo || '',
                 telefono: userData.telefono || '',
                 fechaNacimiento: userData.fechaNacimiento || '',
                 twoFAEnabled: userData.twoFAEnabled || false,
-                providerId: providerId,
-                role: role
+                providerId: providerId, role: role
             };
-
             const isGoogleUser = providerId === 'google.com';
             const changeBtn = document.getElementById('changePasswordBtn');
             const helper = document.getElementById('passwordHelper');
-            
             if (changeBtn && helper) {
                 if (isGoogleUser) {
                     changeBtn.textContent = '🔑 Recuperar contraseña (Google)';
@@ -1598,17 +1333,11 @@ function watchAuthState() {
                     helper.classList.add('hidden');
                 }
             }
-
-            // Verificar si estamos en admin.html y el usuario no es admin
             if (window.location.pathname.includes('admin.html') && role !== 'admin') {
                 showToast('No tienes permisos para acceder al panel de administración.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
+                setTimeout(() => window.location.href = 'index.html', 2000);
                 return;
             }
-
-            // Construir menú con opciones según rol
             let roleMenuItems = '';
             if (role === 'admin') {
                 roleMenuItems = `
@@ -1623,7 +1352,6 @@ function watchAuthState() {
                     </a>
                 `;
             }
-
             const userHTML = `
                 <div class="relative">
                     <button onclick="toggleAccountMenu()" class="flex items-center gap-2 bg-brand-card border border-brand-border hover:border-blue-500 rounded-full pl-1.5 pr-3 py-1.5 transition">
@@ -1652,12 +1380,9 @@ function watchAuthState() {
                     </div>
                 </div>
             `;
-            
             if (authArea) authArea.innerHTML = userHTML;
-            
             const messagesFab = document.getElementById('messagesFab');
             if (messagesFab) messagesFab.classList.remove('hidden');
-            
             if (typeof lucide !== 'undefined') lucide.createIcons();
             watchConversations();
             loadProfilesFromFirebase();
@@ -1671,15 +1396,11 @@ function watchAuthState() {
                     Crear cuenta
                 </button>
             `;
-            
             if (authArea) authArea.innerHTML = loginHTML;
-            
             const messagesFab = document.getElementById('messagesFab');
             if (messagesFab) messagesFab.classList.add('hidden');
-            
             const inboxWindow = document.getElementById('inbox-window');
             if (inboxWindow) inboxWindow.classList.add('hidden');
-            
             if (conversationsUnsub) { conversationsUnsub(); conversationsUnsub = null; }
             loadProfilesFromFirebase();
         }
@@ -1699,24 +1420,21 @@ document.addEventListener('click', (e) => {
 });
 
 // ==========================================
-// EDITOR DE PERFIL
+// EDITOR DE PERFIL CON 2FA COMPLETO
 // ==========================================
 function initProfileEditor() {
     const form = document.getElementById('profileEditorForm');
     if (!form) return;
-
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById('editProfileSubmitBtn');
         const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.textContent = 'Guardando...';
-        
         const errorEl = document.getElementById('editProfileError');
         const successEl = document.getElementById('editProfileSuccess');
         if (errorEl) errorEl.classList.add('hidden');
         if (successEl) successEl.classList.add('hidden');
-
         try {
             const user = auth.currentUser;
             if (!user) {
@@ -1728,7 +1446,6 @@ function initProfileEditor() {
                 submitBtn.textContent = originalText;
                 return;
             }
-
             const name = document.getElementById('editName').value.trim();
             const apellido = document.getElementById('editApellido').value.trim();
             const email = document.getElementById('editEmail').value.trim();
@@ -1737,15 +1454,12 @@ function initProfileEditor() {
             const cargo = document.getElementById('editCargo').value.trim();
             const fechaNac = document.getElementById('editFechaNac').value;
             const twoFAEnabled = document.getElementById('edit2FA').checked;
-
             if (!name) { if (errorEl) { errorEl.textContent = 'El nombre es obligatorio.'; errorEl.classList.remove('hidden'); } throw new Error('Nombre requerido'); }
             if (!apellido) { if (errorEl) { errorEl.textContent = 'Los apellidos son obligatorios.'; errorEl.classList.remove('hidden'); } throw new Error('Apellidos requeridos'); }
             if (!email) { if (errorEl) { errorEl.textContent = 'El email es obligatorio.'; errorEl.classList.remove('hidden'); } throw new Error('Email requerido'); }
-
             if (name !== user.displayName) {
                 await updateProfile(user, { displayName: `${name} ${apellido}` });
             }
-
             const current2FA = currentUserProfile?.twoFAEnabled || false;
             if (twoFAEnabled !== current2FA) {
                 if (twoFAEnabled) {
@@ -1775,17 +1489,11 @@ function initProfileEditor() {
                     }
                 }
             }
-
             await updateDoc(doc(db, 'usuarios', user.uid), {
-                name: name,
-                apellido: apellido,
-                telefono: telefono,
-                empresa: empresa,
-                cargo: cargo,
-                fechaNacimiento: fechaNac,
+                name: name, apellido: apellido, telefono: telefono,
+                empresa: empresa, cargo: cargo, fechaNacimiento: fechaNac,
                 updatedAt: serverTimestamp()
             });
-
             if (currentUserProfile) {
                 currentUserProfile.name = name;
                 currentUserProfile.apellido = apellido;
@@ -1795,18 +1503,12 @@ function initProfileEditor() {
                 currentUserProfile.cargo = cargo;
                 currentUserProfile.fechaNacimiento = fechaNac;
             }
-
             if (successEl) {
                 successEl.textContent = '¡Perfil actualizado con éxito!';
                 successEl.classList.remove('hidden');
             }
-            
             watchAuthState();
-            
-            setTimeout(() => {
-                closeProfileEditor();
-            }, 2000);
-
+            setTimeout(() => { closeProfileEditor(); }, 2000);
         } catch (error) {
             console.error('Error al guardar perfil:', error);
             if (errorEl && !errorEl.textContent) {
@@ -1825,7 +1527,6 @@ window.openProfileEditor = function() {
         showToast('Debes iniciar sesión primero.', 'warning');
         return;
     }
-
     document.getElementById('editName').value = currentUserProfile.name || '';
     document.getElementById('editApellido').value = currentUserProfile.apellido || '';
     document.getElementById('editEmail').value = currentUserProfile.email || '';
@@ -1836,11 +1537,9 @@ window.openProfileEditor = function() {
     document.getElementById('edit2FA').checked = currentUserProfile.twoFAEnabled || false;
     document.getElementById('editProfileError').classList.add('hidden');
     document.getElementById('editProfileSuccess').classList.add('hidden');
-
     const isGoogleUser = currentUserProfile.providerId === 'google.com';
     const changeBtn = document.getElementById('changePasswordBtn');
     const helper = document.getElementById('passwordHelper');
-    
     if (changeBtn && helper) {
         if (isGoogleUser) {
             changeBtn.textContent = '🔑 Recuperar contraseña (Google)';
@@ -1851,7 +1550,6 @@ window.openProfileEditor = function() {
             helper.classList.add('hidden');
         }
     }
-
     const modal = document.getElementById('profileEditorModal');
     if (modal) {
         modal.classList.remove('hidden-modal');
@@ -1872,7 +1570,7 @@ window.closeProfileEditor = function() {
 };
 
 // ==========================================
-// CAMBIAR CONTRASEÑA
+// CAMBIAR CONTRASEÑA (CON DETECCIÓN DE PROVEEDOR)
 // ==========================================
 window.changePassword = async function() {
     const user = auth.currentUser;
@@ -1880,16 +1578,13 @@ window.changePassword = async function() {
         showToast('No has iniciado sesión.', 'warning');
         return;
     }
-
     const providerId = currentUserProfile?.providerId || user.providerData?.[0]?.providerId;
-
     if (providerId === 'google.com') {
         const confirmReset = confirm(
             '🔑 Has iniciado sesión con Google.\n\n' +
             'No tienes una contraseña asociada a tu cuenta.\n\n' +
             '¿Quieres recibir un email para establecer una contraseña nueva?'
         );
-        
         if (confirmReset) {
             try {
                 await sendPasswordResetEmail(auth, user.email);
@@ -1901,22 +1596,18 @@ window.changePassword = async function() {
         }
         return;
     }
-
     const currentPassword = prompt('🔐 Introduce tu contraseña actual:');
     if (currentPassword === null) return;
-
     const newPassword = prompt('🔑 Introduce tu nueva contraseña (mín. 6 caracteres):');
     if (!newPassword || newPassword.length < 6) {
         showToast('La contraseña debe tener al menos 6 caracteres.', 'warning');
         return;
     }
-
     const confirmPassword = prompt('🔑 Confirma tu nueva contraseña:');
     if (newPassword !== confirmPassword) {
         showToast('❌ Las contraseñas no coinciden.', 'error');
         return;
     }
-
     try {
         const credential = EmailAuthProvider.credential(user.email, currentPassword);
         await reauthenticateWithCredential(user, credential);
@@ -1935,17 +1626,360 @@ window.changePassword = async function() {
 };
 
 // ==========================================
+// CONTROL DE ROLES - FUNCIONES DE ADMIN
+// ==========================================
+async function getUserRole(uid) {
+    try {
+        const userDoc = await getDoc(doc(db, 'usuarios', uid));
+        if (!userDoc.exists()) return 'user';
+        return userDoc.data().role || 'user';
+    } catch (error) {
+        console.error('Error al obtener rol:', error);
+        return 'user';
+    }
+}
+
+async function isAdmin(uid) {
+    const role = await getUserRole(uid);
+    return role === 'admin';
+}
+
+async function isWorker(uid) {
+    const role = await getUserRole(uid);
+    return role === 'worker' || role === 'admin';
+}
+
+async function setUserRole(uid, role) {
+    try {
+        await updateDoc(doc(db, 'usuarios', uid), { role: role, updatedAt: serverTimestamp() });
+        return true;
+    } catch (error) {
+        console.error('Error al asignar rol:', error);
+        return false;
+    }
+}
+
+async function promoteToWorker(uid, name, email, specialties = []) {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !(await isAdmin(currentUser.uid))) {
+        showToast('Solo los administradores pueden realizar esta acción.', 'error');
+        return false;
+    }
+    try {
+        await setUserRole(uid, 'worker');
+        await setDoc(doc(db, 'workers', uid), {
+            uid: uid, name: name, email: email, role: 'soporte',
+            online: true, activeTickets: 0, maxTickets: 5,
+            specialties: specialties, createdAt: serverTimestamp()
+        });
+        showToast(`✅ ${name} ahora es trabajador.`, 'success');
+        return true;
+    } catch (error) {
+        console.error('Error al promover a trabajador:', error);
+        showToast('❌ Error al promover a trabajador.', 'error');
+        return false;
+    }
+}
+
+async function demoteFromWorker(uid) {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !(await isAdmin(currentUser.uid))) {
+        showToast('Solo los administradores pueden realizar esta acción.', 'error');
+        return false;
+    }
+    try {
+        await setUserRole(uid, 'user');
+        await deleteDoc(doc(db, 'workers', uid));
+        showToast('✅ Trabajador desactivado.', 'success');
+        return true;
+    } catch (error) {
+        console.error('Error al desactivar trabajador:', error);
+        showToast('❌ Error al desactivar trabajador.', 'error');
+        return false;
+    }
+}
+
+async function getAllUsers() {
+    try {
+        const snapshot = await getDocs(collection(db, 'usuarios'));
+        const users = [];
+        snapshot.forEach(doc => users.push({ uid: doc.id, ...doc.data() }));
+        return users;
+    } catch (error) {
+        console.error('Error al obtener usuarios:', error);
+        return [];
+    }
+}
+
+// ==========================================
+// PANEL DE ADMIN
+// ==========================================
+async function loadAdminPanel() {
+    const users = await getAllUsers();
+    const list = document.getElementById('usersList');
+    const totalUsers = document.getElementById('totalUsers');
+    const totalWorkers = document.getElementById('totalWorkers');
+    if (!list) return;
+    if (users.length === 0) {
+        list.innerHTML = '<p class="text-sm text-brand-muted">No hay usuarios registrados.</p>';
+        return;
+    }
+    let workerCount = 0;
+    list.innerHTML = '';
+    users.forEach(user => {
+        const role = user.role || 'user';
+        if (role === 'worker' || role === 'admin') workerCount++;
+        const isCurrentUser = user.uid === auth.currentUser?.uid;
+        const card = document.createElement('div');
+        card.className = 'admin-user-card flex flex-col md:flex-row md:items-center justify-between gap-3';
+        card.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand-dark border border-brand-border flex items-center justify-center text-sm font-bold text-white">${user.name ? user.name.charAt(0).toUpperCase() : '?'}</div>
+                <div><p class="text-sm font-medium text-white">${user.name || 'Sin nombre'}</p><p class="text-xs text-brand-muted">${user.email || 'Sin email'}</p></div>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="role-badge ${role}">${role === 'admin' ? '👑 Administrador' : role === 'worker' ? '🛠️ Trabajador' : '👤 Usuario'}</span>
+                ${!isCurrentUser && role !== 'admin' ? `
+                    ${role === 'user' ? `<button onclick="handlePromote('${user.uid}', '${user.name || 'Usuario'}', '${user.email || ''}')" class="btn-promote">+ Hacer trabajador</button>` :
+                    `<button onclick="handleDemote('${user.uid}')" class="btn-demote">Quitar trabajador</button>`}
+                ` : ''}
+                ${role === 'admin' ? '<span class="text-[10px] text-blue-400">🔒 Protegido</span>' : ''}
+                ${isCurrentUser ? '<span class="text-[10px] text-brand-muted">(Tú)</span>' : ''}
+            </div>
+        `;
+        list.appendChild(card);
+    });
+    if (totalUsers) totalUsers.textContent = users.length;
+    if (totalWorkers) totalWorkers.textContent = workerCount;
+}
+
+window.handlePromote = async function(uid, name, email) {
+    const specialties = prompt('Especialidades del trabajador (separadas por comas):', 'publicacion, mensajeria, cuenta');
+    if (specialties === null) return;
+    const specialtiesArray = specialties.split(',').map(s => s.trim()).filter(s => s);
+    await promoteToWorker(uid, name, email, specialtiesArray);
+    loadAdminPanel();
+};
+
+window.handleDemote = async function(uid) {
+    if (confirm('¿Estás seguro de que quieres quitar el rol de trabajador a este usuario?')) {
+        await demoteFromWorker(uid);
+        loadAdminPanel();
+    }
+};
+
+// ==========================================
+// PANEL DE SOPORTE
+// ==========================================
+function loadTickets() {
+    const list = document.getElementById('ticketsList');
+    if (!list) return;
+    try {
+        const q = query(collection(db, 'tickets'), orderBy('createdAt', 'desc'));
+        if (ticketsUnsub) ticketsUnsub();
+        ticketsUnsub = onSnapshot(q, (snapshot) => {
+            const tickets = [];
+            let pending = 0, active = 0, resolved = 0;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                tickets.push({ id: doc.id, ...data });
+                if (data.status === 'pending') pending++;
+                else if (data.status === 'in-progress') active++;
+                else if (data.status === 'resolved') resolved++;
+            });
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('activeCount').textContent = active;
+            document.getElementById('resolvedCount').textContent = resolved;
+            renderTickets(tickets);
+        }, (error) => {
+            console.error('Error al cargar tickets:', error);
+            list.innerHTML = '<p class="text-sm text-brand-muted text-center py-8">Error al cargar tickets.</p>';
+        });
+    } catch (error) {
+        console.error('Error al cargar tickets:', error);
+        list.innerHTML = '<p class="text-sm text-brand-muted text-center py-8">Error al cargar tickets.</p>';
+    }
+}
+
+function renderTickets(tickets) {
+    const list = document.getElementById('ticketsList');
+    if (!list) return;
+    const filtered = tickets.filter(t => {
+        if (currentFilter === 'all') return true;
+        return t.status === currentFilter;
+    });
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="text-center py-12"><i data-lucide="inbox" class="w-12 h-12 text-brand-muted mx-auto mb-4"></i><p class="text-sm text-brand-muted">No hay tickets ${currentFilter === 'all' ? '' : currentFilter}.</p></div>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        return;
+    }
+    list.innerHTML = '';
+    filtered.forEach(ticket => {
+        const isAssigned = ticket.assignedTo === auth.currentUser?.uid;
+        const isPending = ticket.status === 'pending';
+        const isInProgress = ticket.status === 'in-progress';
+        const isResolved = ticket.status === 'resolved';
+        const card = document.createElement('div');
+        card.className = `ticket-card`;
+        const statusMap = { 'pending': 'pendiente', 'in-progress': 'en progreso', 'resolved': 'resuelto' };
+        card.innerHTML = `
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="text-sm font-bold text-white truncate">${ticket.userName || 'Usuario'}</p>
+                        <span class="status-badge ${ticket.status}">${statusMap[ticket.status] || ticket.status}</span>
+                    </div>
+                    <p class="text-xs text-brand-muted truncate">${ticket.message || 'Sin mensaje'}</p>
+                    <p class="text-[10px] text-brand-muted mt-1">${ticket.userEmail || ''} • ${ticket.createdAt?.toDate?.()?.toLocaleDateString() || ''}</p>
+                    ${ticket.assignedByName ? `<p class="text-[10px] text-blue-400">👤 ${ticket.assignedByName}</p>` : ''}
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    ${isPending ? `<button onclick="acceptTicket('${ticket.id}')" class="btn-accept">✅ Aceptar</button>` : ''}
+                    ${isInProgress && isAssigned ? `<button onclick="openChatModal('${ticket.id}')" class="btn-resolve">💬 Abrir chat</button>` : ''}
+                    ${isInProgress && isAssigned ? `<button onclick="resolveTicketFromList('${ticket.id}')" class="text-[10px] text-emerald-400 hover:text-emerald-300 transition">✅ Resolver</button>` : ''}
+                    ${isResolved ? `<span class="text-[10px] text-emerald-400">✅ Resuelto</span>` : ''}
+                </div>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+window.filterTickets = function(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('#tabAll, #tabPending, #tabProgress, #tabResolved').forEach(el => {
+        el.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-brand-card border border-brand-border text-brand-muted hover:text-white transition whitespace-nowrap';
+    });
+    const tabMap = { 'all': 'tabAll', 'pending': 'tabPending', 'in-progress': 'tabProgress', 'resolved': 'tabResolved' };
+    const activeTab = document.getElementById(tabMap[filter]);
+    if (activeTab) activeTab.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition whitespace-nowrap';
+    if (ticketsUnsub) {
+        const q = query(collection(db, 'tickets'), orderBy('createdAt', 'desc'));
+        getDocs(q).then(snapshot => {
+            const tickets = [];
+            snapshot.forEach(doc => tickets.push({ id: doc.id, ...doc.data() }));
+            renderTickets(tickets);
+        });
+    }
+};
+
+window.acceptTicket = async function(ticketId) {
+    try {
+        const user = auth.currentUser;
+        if (!user) { showToast('Debes iniciar sesión.', 'warning'); return; }
+        await updateDoc(doc(db, 'tickets', ticketId), {
+            status: 'in-progress', assignedTo: user.uid,
+            assignedByName: currentUserProfile?.name || 'Trabajador', assignedAt: serverTimestamp()
+        });
+        showToast('✅ Ticket aceptado. Abre el chat para atender al cliente.', 'success');
+    } catch (error) {
+        console.error('Error al aceptar ticket:', error);
+        showToast('Error al aceptar el ticket.', 'error');
+    }
+};
+
+window.resolveTicketFromList = async function(ticketId) {
+    if (!confirm('¿Marcar este ticket como resuelto?')) return;
+    try {
+        await updateDoc(doc(db, 'tickets', ticketId), { status: 'resolved', resolvedAt: serverTimestamp() });
+        showToast('✅ Ticket resuelto.', 'success');
+    } catch (error) {
+        console.error('Error al resolver ticket:', error);
+        showToast('Error al resolver el ticket.', 'error');
+    }
+};
+
+window.openChatModal = function(ticketId) {
+    currentTicketId = ticketId;
+    const modal = document.getElementById('chatModal');
+    const clientName = document.getElementById('chatClientName');
+    const ticketIdEl = document.getElementById('chatTicketId');
+    const messagesContainer = document.getElementById('chatMessagesModal');
+    if (!modal || !clientName || !ticketIdEl || !messagesContainer) return;
+    modal.classList.add('active');
+    messagesContainer.innerHTML = '<p class="text-xs text-brand-muted text-center">Cargando mensajes...</p>';
+    getDoc(doc(db, 'tickets', ticketId)).then(docSnap => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            clientName.textContent = data.userName || 'Cliente';
+            ticketIdEl.textContent = `Ticket #${ticketId.substring(0, 8)}`;
+        }
+    });
+    if (currentTicketUnsub) currentTicketUnsub();
+    const q = query(collection(db, 'ticket_messages', ticketId, 'messages'), orderBy('createdAt', 'asc'));
+    currentTicketUnsub = onSnapshot(q, (snapshot) => { renderTicketMessages(snapshot, messagesContainer); }, (error) => {
+        console.error('Error al cargar mensajes:', error);
+        messagesContainer.innerHTML = '<p class="text-xs text-brand-muted text-center">Error al cargar mensajes.</p>';
+    });
+};
+
+function renderTicketMessages(snapshot, container) {
+    if (!container) return;
+    if (snapshot.empty) {
+        container.innerHTML = '<p class="text-xs text-brand-muted text-center">Aún no hay mensajes. Escribe el primero.</p>';
+        return;
+    }
+    container.innerHTML = '';
+    snapshot.forEach(docSnap => {
+        const msg = docSnap.data();
+        const isWorker = msg.senderId === auth.currentUser?.uid;
+        const bubble = document.createElement('div');
+        bubble.className = isWorker ? 'chat-msg-worker' : 'chat-msg-client';
+        bubble.textContent = msg.text;
+        container.appendChild(bubble);
+    });
+    container.scrollTop = container.scrollHeight;
+}
+
+window.closeChatModal = function() {
+    const modal = document.getElementById('chatModal');
+    if (modal) modal.classList.remove('active');
+    if (currentTicketUnsub) { currentTicketUnsub(); currentTicketUnsub = null; }
+    currentTicketId = null;
+};
+
+window.sendWorkerMessage = async function() {
+    const input = document.getElementById('chatInputModal');
+    if (!input || !currentTicketId) return;
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    try {
+        await addDoc(collection(db, 'ticket_messages', currentTicketId, 'messages'), {
+            senderId: auth.currentUser?.uid || 'worker',
+            senderName: currentUserProfile?.name || 'Trabajador',
+            text: text, createdAt: serverTimestamp()
+        });
+    } catch (error) {
+        console.error('Error al enviar mensaje:', error);
+        showToast('Error al enviar mensaje.', 'error');
+    }
+};
+
+window.resolveTicket = async function() {
+    if (!currentTicketId) return;
+    if (!confirm('¿Marcar este ticket como resuelto?')) return;
+    try {
+        await updateDoc(doc(db, 'tickets', currentTicketId), { status: 'resolved', resolvedAt: serverTimestamp() });
+        closeChatModal();
+        showToast('✅ Ticket resuelto.', 'success');
+    } catch (error) {
+        console.error('Error al resolver ticket:', error);
+        showToast('Error al resolver el ticket.', 'error');
+    }
+};
+
+// ==========================================
 // FILTRADO DE PERFILES
 // ==========================================
 window.filterProfiles = function() {
     const queryElement = document.getElementById('searchInput');
     const specialtyElement = document.getElementById('filterSpecialty');
     const locationElement = document.getElementById('filterLocation');
-    
     const query = queryElement?.value?.toLowerCase() || '';
     const specialty = specialtyElement?.value || '';
     const location = locationElement?.value || '';
-    
     const filtered = allProfilesCache.filter(p => {
         const matchSearch = p.name.toLowerCase().includes(query) || 
                            p.role.toLowerCase().includes(query) ||
@@ -1980,11 +2014,9 @@ window.startConversation = async function(peer) {
         showToast('No puedes enviarte un mensaje a ti mismo.', 'warning');
         return;
     }
-
     const convId = conversationIdFor(auth.currentUser.uid, peer.uid);
     const convRef = doc(db, 'conversations', convId);
     const convSnap = await getDoc(convRef);
-
     if (!convSnap.exists()) {
         await setDoc(convRef, {
             participants: [auth.currentUser.uid, peer.uid],
@@ -1997,9 +2029,7 @@ window.startConversation = async function(peer) {
             createdAt: serverTimestamp()
         });
     }
-
     openThread(convId, { uid: peer.uid, name: peer.name || 'Usuario' });
-    
     const inboxWindow = document.getElementById('inbox-window');
     if (inboxWindow) {
         inboxWindow.classList.remove('hidden');
@@ -2022,23 +2052,18 @@ window.toggleInbox = function() {
 
 function watchConversations() {
     if (conversationsUnsub) conversationsUnsub();
-    
     requestNotificationPermission();
-    
     const q = query(
         collection(db, 'conversations'),
         where('participants', 'array-contains', auth.currentUser.uid)
     );
-    
     conversationsUnsub = onSnapshot(q, (snapshot) => {
         const docs = [];
         let unread = 0;
         let newMessage = null;
-        
         snapshot.forEach(doc => {
             const data = doc.data();
             docs.push({ id: doc.id, ...data });
-            
             if (data.lastMessage && data.lastMessageBy !== auth.currentUser.uid) {
                 const lastMsgId = data.lastMessageId || '';
                 if (lastMsgId !== localStorage.getItem(`read_${doc.id}`)) {
@@ -2055,9 +2080,7 @@ function watchConversations() {
                 }
             }
         });
-        
         updateUnreadBadge(unread);
-        
         if (newMessage && unread > 0) {
             showNewMessageNotification(newMessage.sender, newMessage.preview);
             playNotificationSound();
@@ -2066,7 +2089,6 @@ function watchConversations() {
                 newMessage.preview
             );
         }
-        
         docs.sort((a, b) => {
             const aTime = a.lastMessageAt?.toMillis?.() || 0;
             const bTime = b.lastMessageAt?.toMillis?.() || 0;
@@ -2081,21 +2103,17 @@ function watchConversations() {
 function renderConversationsList(docs) {
     const list = document.getElementById('conversationsList');
     if (!list) return;
-
     if (!docs || docs.length === 0) {
         list.innerHTML = '<p class="text-xs text-brand-muted p-4 text-center">Aún no tienes conversaciones.</p>';
         return;
     }
-
     list.innerHTML = '';
     docs.forEach((data) => {
         const peerUid = data.participants?.find(uid => uid !== auth.currentUser.uid);
         if (!peerUid) return;
-        
         const peerInfo = data.participantsInfo ? data.participantsInfo[peerUid] : null;
         const peerName = peerInfo ? peerInfo.name : 'Usuario';
         const peerPhoto = (peerInfo && peerInfo.photo) ? peerInfo.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(peerName)}&background=1f1f1f&color=fff`;
-
         const item = document.createElement('button');
         item.className = 'w-full text-left p-4 flex items-center gap-3 hover:bg-brand-border/50 transition';
         item.innerHTML = `
@@ -2113,24 +2131,20 @@ function renderConversationsList(docs) {
 function openThread(convId, peer) {
     activeConversationId = convId;
     activePeer = peer;
-
     const inboxListView = document.getElementById('inboxListView');
     const threadView = document.getElementById('threadView');
     const threadPeerName = document.getElementById('threadPeerName');
     const threadMessages = document.getElementById('threadMessages');
-
     if (!inboxListView || !threadView || !threadPeerName || !threadMessages) {
         console.error('Elementos de mensajería no encontrados');
         showToast('La ventana de mensajería no está disponible.', 'error');
         return;
     }
-
     inboxListView.classList.add('hidden');
     threadView.classList.remove('hidden');
     threadView.classList.add('flex');
     threadPeerName.textContent = peer.name || 'Usuario';
     threadMessages.innerHTML = '<p class="text-xs text-brand-muted text-center">Cargando mensajes...</p>';
-
     if (activeThreadUnsub) activeThreadUnsub();
     const q = query(collection(db, 'conversations', convId, 'messages'), orderBy('createdAt', 'asc'));
     activeThreadUnsub = onSnapshot(q, (snapshot) => {
@@ -2138,7 +2152,6 @@ function openThread(convId, peer) {
     }, (error) => {
         console.error('Error escuchando mensajes:', error);
     });
-    
     const qMsg = query(
         collection(db, 'conversations', convId, 'messages'),
         orderBy('createdAt', 'desc'),
@@ -2157,12 +2170,10 @@ function renderThreadMessages(snapshot) {
     const container = document.getElementById('threadMessages');
     if (!container) return;
     container.innerHTML = '';
-
     if (snapshot.empty) {
         container.innerHTML = '<p class="text-xs text-brand-muted text-center">Escribe el primer mensaje.</p>';
         return;
     }
-
     snapshot.forEach((docSnap) => {
         const msg = docSnap.data();
         const mine = msg.senderId === auth.currentUser.uid;
@@ -2181,7 +2192,6 @@ window.backToInbox = function() {
 function backToInboxView() {
     const inboxListView = document.getElementById('inboxListView');
     const threadView = document.getElementById('threadView');
-    
     if (threadView) {
         threadView.classList.add('hidden');
         threadView.classList.remove('flex');
@@ -2189,7 +2199,6 @@ function backToInboxView() {
     if (inboxListView) {
         inboxListView.classList.remove('hidden');
     }
-    
     if (activeThreadUnsub) { 
         activeThreadUnsub(); 
         activeThreadUnsub = null; 
@@ -2204,23 +2213,19 @@ window.sendThreadMessage = async function() {
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
-
     try {
         const msgRef = await addDoc(collection(db, 'conversations', activeConversationId, 'messages'), {
             senderId: auth.currentUser.uid,
             text: text,
             createdAt: serverTimestamp()
         });
-        
         await updateDoc(doc(db, 'conversations', activeConversationId), {
             lastMessage: text,
             lastMessageAt: serverTimestamp(),
             lastMessageBy: auth.currentUser.uid,
             lastMessageId: msgRef.id
         });
-        
         localStorage.setItem(`read_${activeConversationId}`, msgRef.id);
-        
     } catch (error) {
         console.error('Error al enviar el mensaje:', error);
         showToast('No se pudo enviar el mensaje.', 'error');

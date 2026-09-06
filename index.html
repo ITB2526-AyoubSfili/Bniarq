@@ -49,7 +49,6 @@
         .hidden-modal { display: none !important; }
         .flex-center { display: flex; align-items: center; justify-content: center; }
         #chat-window, #inbox-window { transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
         .skeleton {
             background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
             background-size: 200% 100%;
@@ -64,7 +63,6 @@
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
-
         #toast-container {
             position: fixed;
             top: 20px;
@@ -97,7 +95,6 @@
         .toast-error { background: #2e0a0a; border-color: #ef4444; }
         .toast-warning { background: #2e1a0a; border-color: #f59e0b; }
         .toast-info { background: #0a1a2e; border-color: #3b82f6; }
-
         #unreadBadge {
             position: absolute;
             top: -4px;
@@ -123,7 +120,6 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
-
         .new-msg-toast {
             position: fixed;
             bottom: 100px;
@@ -143,8 +139,6 @@
         .new-msg-toast.show { transform: translateX(0); opacity: 1; }
         .new-msg-toast .sender { color: #2563eb; font-weight: 600; font-size: 0.8rem; }
         .new-msg-toast .preview { color: #a1a1aa; font-size: 0.75rem; margin-top: 2px; }
-
-        /* Admin Panel Styles */
         .admin-user-card {
             background: #0a0a0a;
             border: 1px solid #1f1f1f;
@@ -152,39 +146,73 @@
             padding: 16px 20px;
             transition: all 0.3s ease;
         }
-        .admin-user-card:hover {
-            border-color: #2563eb;
-            box-shadow: 0 0 30px rgba(37, 99, 235, 0.05);
-        }
-        .role-badge {
-            font-size: 9px;
-            padding: 2px 10px;
-            border-radius: 50px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
+        .admin-user-card:hover { border-color: #2563eb; box-shadow: 0 0 30px rgba(37, 99, 235, 0.05); }
+        .role-badge { font-size: 9px; padding: 2px 10px; border-radius: 50px; font-weight: 600; text-transform: uppercase; }
         .role-badge.user { background: #1a1a1a; color: #a1a1aa; border: 1px solid #2a2a2a; }
         .role-badge.worker { background: #0a2e1a; color: #22c55e; border: 1px solid #22c55e; }
         .role-badge.admin { background: #0a1a2e; color: #3b82f6; border: 1px solid #3b82f6; }
-
-        @media (max-width: 480px) {
+        .btn-promote {
+            background: #0a2e1a; color: #22c55e; border: 1px solid #22c55e;
+            padding: 4px 12px; border-radius: 50px; font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-promote:hover { background: #22c55e; color: #000; }
+        .btn-demote {
+            background: #2e0a0a; color: #ef4444; border: 1px solid #ef4444;
+            padding: 4px 12px; border-radius: 50px; font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-demote:hover { background: #ef4444; color: #000; }
+        .ticket-card {
+            background: #0a0a0a;
+            border: 1px solid #1f1f1f;
+            border-radius: 16px;
+            padding: 16px 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .ticket-card:hover { border-color: #2563eb; box-shadow: 0 0 30px rgba(37, 99, 235, 0.05); }
+        .status-badge { font-size: 9px; padding: 2px 10px; border-radius: 50px; font-weight: 600; text-transform: uppercase; }
+        .status-badge.pending { background: #2e1a0a; color: #f59e0b; border: 1px solid #f59e0b; }
+        .status-badge.in-progress { background: #0a1a2e; color: #3b82f6; border: 1px solid #3b82f6; }
+        .status-badge.resolved { background: #0a2e1a; color: #22c55e; border: 1px solid #22c55e; }
+        .btn-accept {
+            background: #0a2e1a; color: #22c55e; border: 1px solid #22c55e;
+            padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-accept:hover { background: #22c55e; color: #000; }
+        .btn-resolve {
+            background: #0a1a2e; color: #3b82f6; border: 1px solid #3b82f6;
+            padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-resolve:hover { background: #3b82f6; color: #000; }
+        .chat-msg-worker {
+            background-color: #1a1a1a; border: 1px solid #262626; color: #e5e5e5;
+            border-radius: 12px 12px 12px 2px; padding: 10px 14px; font-size: 0.85rem;
+            max-width: 85%; align-self: flex-start; animation: fadeInMsg 0.3s ease; line-height: 1.4;
+        }
+        .chat-msg-client {
+            background-color: #2563EB; color: #ffffff;
+            border-radius: 12px 12px 2px 12px; padding: 10px 14px; font-size: 0.85rem;
+            max-width: 85%; align-self: flex-end; animation: fadeInMsg 0.3s ease;
+        }
+        .modal-overlay-chat {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay-chat.active { display: flex; }
+        .modal-content-chat {
+            background: #0a0a0a; border: 1px solid #1f1f1f; border-radius: 24px;
+            max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column;
+        }
+        @media (max-width: 640px) {
             #toast-container { max-width: 90vw; right: 5vw; top: 10px; }
             .toast { font-size: 0.8rem; padding: 12px 16px; }
             .new-msg-toast { max-width: 85vw; right: 7.5vw; bottom: 80px; }
             #chat-window, #inbox-window {
-                width: 95vw !important;
-                right: 2.5vw !important;
-                left: 2.5vw !important;
-                max-height: 70vh !important;
-                bottom: 80px !important;
-                border-radius: 16px !important;
+                width: 95vw !important; right: 2.5vw !important; left: 2.5vw !important;
+                max-height: 70vh !important; bottom: 80px !important; border-radius: 16px !important;
             }
             #messagesFab { bottom: 80px !important; right: 20px !important; }
-            .chat-options-btn {
-                font-size: 0.7rem !important;
-                padding: 8px 12px !important;
-                width: 100% !important;
-            }
+            .chat-options-btn { font-size: 0.7rem !important; padding: 8px 12px !important; width: 100% !important; }
             nav { padding: 10px 12px !important; }
             nav .text-xl { font-size: 1rem !important; }
             #inicio h1 { font-size: 2rem !important; }
@@ -192,14 +220,13 @@
             #profilesGrid { gap: 12px !important; }
             .bg-brand-card.p-6 { padding: 16px !important; }
             #searchInput, #filterSpecialty, #filterLocation { font-size: 0.75rem !important; padding: 10px 12px !important; }
+            .ticket-card { padding: 12px 16px; }
+            .modal-content-chat { max-width: 100%; margin: 10px; border-radius: 16px; }
         }
         @media (max-width: 640px) {
             #chat-window, #inbox-window {
-                width: 90vw !important;
-                right: 5vw !important;
-                left: 5vw !important;
-                max-height: 80vh !important;
-                bottom: 80px !important;
+                width: 90vw !important; right: 5vw !important; left: 5vw !important;
+                max-height: 80vh !important; bottom: 80px !important;
             }
             #messagesFab { bottom: 80px !important; right: 20px !important; }
             .chat-msg-user, .chat-msg-bot { max-width: 95% !important; font-size: 0.8rem !important; }
@@ -207,7 +234,7 @@
         }
     </style>
 </head>
-<body class="bg-brand-dark text-white selection:bg-blue-600 selection:text-white antialiased">
+<body>
 
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
@@ -218,7 +245,7 @@
         <div class="preview" id="msgPreview">Nuevo mensaje</div>
     </div>
 
-    <!-- HEADER / NAVBAR -->
+    <!-- HEADER -->
     <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-4 px-6 md:px-12 flex items-center justify-between border-b border-transparent">
         <div class="flex items-center gap-3">
             <span class="text-xl font-bold tracking-tighter text-white">bniarq<span class="text-blue-500">.</span></span>
@@ -239,7 +266,7 @@
         </div>
     </nav>
 
-    <!-- HERO SECTION -->
+    <!-- HERO -->
     <section id="inicio" class="min-h-screen pt-32 pb-20 px-6 md:px-12 flex flex-col justify-center items-center text-center relative overflow-hidden">
         <div class="absolute inset-0 z-0 opacity-20 bg-[radial-gradient(#2563eb_1px,transparent_1px)] [background-size:32px_32px]"></div>
         <div class="max-w-4xl mx-auto z-10 reveal">
@@ -263,7 +290,7 @@
         </div>
     </section>
 
-    <!-- DIRECTORIO DE ARQUITECTOS (Vista previa) -->
+    <!-- DIRECTORIO -->
     <section id="directorio" class="py-24 px-6 md:px-12 border-t border-brand-border bg-brand-dark">
         <div class="max-w-7xl mx-auto reveal">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -279,7 +306,7 @@
         </div>
     </section>
 
-    <!-- FORMULARIO DE REGISTRO DE PERFILES -->
+    <!-- REGISTRO DE PERFIL -->
     <section id="registro" class="py-24 px-6 md:px-12 border-t border-brand-border bg-brand-card/50">
         <div class="max-w-xl mx-auto reveal">
             <div class="text-center mb-10">
@@ -287,31 +314,13 @@
                 <h3 class="text-2xl font-bold text-white tracking-tight">Registra tu Estudio o Perfil Técnico</h3>
                 <p class="text-xs text-brand-muted mt-2">Los datos se sincronizarán al instante en la base de datos global de Firebase.</p>
             </div>
-            
             <form id="profileForm" class="bg-brand-card border border-brand-border p-8 rounded-3xl shadow-2xl space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Nombre del Estudio / Profesional</label>
-                    <input type="text" id="pName" required placeholder="Ej. Aris Studio" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Especialidad / Rol</label>
-                    <input type="text" id="pRole" required placeholder="Ej. Diseño Residencial & BIM" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Ubicación</label>
-                    <input type="text" id="pLocation" required placeholder="Ej. Barcelona, España" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Software / Stack Técnico</label>
-                    <input type="text" id="pSoftware" required placeholder="Ej. Revit / CypeCAD" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Foto de Perfil</label>
-                    <input type="file" id="pPhotoFile" accept="image/*" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 outline-none cursor-pointer">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg">
-                    Publicar Perfil en la Red
-                </button>
+                <div><label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Nombre del Estudio / Profesional</label><input type="text" id="pName" required placeholder="Ej. Aris Studio" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Especialidad / Rol</label><input type="text" id="pRole" required placeholder="Ej. Diseño Residencial & BIM" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Ubicación</label><input type="text" id="pLocation" required placeholder="Ej. Barcelona, España" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Software / Stack Técnico</label><input type="text" id="pSoftware" required placeholder="Ej. Revit / CypeCAD" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Foto de Perfil</label><input type="file" id="pPhotoFile" accept="image/*" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 outline-none cursor-pointer"></div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg">Publicar Perfil en la Red</button>
             </form>
         </div>
     </section>
@@ -321,36 +330,28 @@
         <div class="max-w-5xl mx-auto reveal text-center">
             <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Arquitectura de Software</span>
             <h2 class="text-3xl font-extrabold text-white tracking-tight mb-6">Seguridad, Cloud Sync y Escalabilidad</h2>
-            <p class="text-sm text-brand-muted max-w-2xl mx-auto mb-16 leading-relaxed">
-                Bniarq abandona las limitaciones locales para ofrecer una plataforma conectada en tiempo real mediante Firebase Firestore, garantizando redundancia y alta disponibilidad.
-            </p>
+            <p class="text-sm text-brand-muted max-w-2xl mx-auto mb-16 leading-relaxed">Bniarq abandona las limitaciones locales para ofrecer una plataforma conectada en tiempo real mediante Firebase Firestore, garantizando redundancia y alta disponibilidad.</p>
         </div>
     </section>
 
-    <!-- SECCIÓN ECOSISTEMA -->
+    <!-- ECOSISTEMA -->
     <section id="ecosistema" class="py-24 px-6 md:px-12 border-t border-brand-border bg-brand-card/30">
         <div class="max-w-5xl mx-auto reveal text-center">
             <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block">Ecosistema Bniarq</span>
             <h2 class="text-3xl font-extrabold text-white tracking-tight mb-6">Un entorno completo para profesionales</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
                 <div class="bg-brand-card border border-brand-border p-6 rounded-2xl">
-                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="hard-drive" class="w-6 h-6 text-blue-400"></i>
-                    </div>
+                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center mx-auto mb-4"><i data-lucide="hard-drive" class="w-6 h-6 text-blue-400"></i></div>
                     <h4 class="text-sm font-bold text-white mb-2">Almacenamiento Seguro</h4>
                     <p class="text-xs text-brand-muted">Documentación técnica cifrada con acceso restringido mediante NDAs digitales.</p>
                 </div>
                 <div class="bg-brand-card border border-brand-border p-6 rounded-2xl">
-                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="message-circle" class="w-6 h-6 text-blue-400"></i>
-                    </div>
+                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center mx-auto mb-4"><i data-lucide="message-circle" class="w-6 h-6 text-blue-400"></i></div>
                     <h4 class="text-sm font-bold text-white mb-2">Comunicación Directa</h4>
                     <p class="text-xs text-brand-muted">Mensajería en tiempo real entre estudios y profesionales validados.</p>
                 </div>
                 <div class="bg-brand-card border border-brand-border p-6 rounded-2xl">
-                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="globe" class="w-6 h-6 text-blue-400"></i>
-                    </div>
+                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center mx-auto mb-4"><i data-lucide="globe" class="w-6 h-6 text-blue-400"></i></div>
                     <h4 class="text-sm font-bold text-white mb-2">Red Global</h4>
                     <p class="text-xs text-brand-muted">Conexión con profesionales de toda Iberoamérica y Europa.</p>
                 </div>
@@ -366,25 +367,14 @@
                     <span class="text-xs uppercase tracking-widest text-blue-500 font-bold mb-2 block text-center">Documentación Oficial</span>
                     <h3 class="text-2xl font-bold text-white tracking-tight mb-2 text-center">Solicitar Dossier Ejecutivo</h3>
                     <p class="text-xs text-brand-muted text-center mb-8">Descarga instantánea del informe técnico y apertura de canal de contacto.</p>
-                    
                     <form id="dossierForm" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Nombre Completo</label>
-                            <input type="text" name="nombre" required placeholder="Tu Nombre" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Correo Corporativo</label>
-                            <input type="email" name="email" required placeholder="tu@estudio.com" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none">
-                        </div>
-                        <button type="submit" id="btnSubmitDossier" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg flex items-center justify-center gap-2">
-                            Descargar Dossier PDF
-                        </button>
+                        <div><label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Nombre Completo</label><input type="text" name="nombre" required placeholder="Tu Nombre" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none"></div>
+                        <div><label class="block text-xs font-bold text-brand-muted mb-1 uppercase">Correo Corporativo</label><input type="email" name="email" required placeholder="tu@estudio.com" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 outline-none"></div>
+                        <button type="submit" id="btnSubmitDossier" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg flex items-center justify-center gap-2">Descargar Dossier PDF</button>
                     </form>
                 </div>
                 <div id="dossierSuccess" class="hidden flex-col items-center justify-center text-center py-6">
-                    <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
-                        <i data-lucide="check" class="w-7 h-7"></i>
-                    </div>
+                    <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30"><i data-lucide="check" class="w-7 h-7"></i></div>
                     <h4 class="text-xl font-bold text-white mb-2">¡Dossier Descargado con Éxito!</h4>
                     <p class="text-xs text-brand-muted">El archivo se ha descargado en tu dispositivo y hemos registrado tu solicitud correctamente.</p>
                 </div>
@@ -392,9 +382,7 @@
         </div>
     </section>
 
-    <!-- ========================================== -->
     <!-- MENSAJERÍA FLOTANTE -->
-    <!-- ========================================== -->
     <div id="messagesFab" class="hidden fixed bottom-24 right-6 z-50">
         <button onclick="toggleInbox()" class="relative bg-brand-card border border-brand-border hover:border-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105">
             <i data-lucide="mail" class="w-6 h-6"></i>
@@ -425,11 +413,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODALES UNIFICADOS -->
-    <!-- ========================================== -->
-    
-    <!-- MODAL DE AUTENTICACIÓN -->
+    <!-- MODALES -->
     <div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative mx-4 max-h-[90vh] overflow-y-auto">
             <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -440,7 +424,8 @@
             <div class="space-y-3 mb-6">
                 <button type="button" onclick="signInWithGoogle()" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-200 text-black text-xs font-bold py-3 rounded-xl transition">
                     <svg class="w-4 h-4" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.5 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.3 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35.3 26.9 36 24 36c-5.3 0-9.8-3.4-11.4-8.1l-6.6 5.1C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.7 2.1-2 3.9-3.7 5.3l6.6 5.6C41.9 36 44 30.5 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-                    Continuar con Google                </button>
+                    Continuar con Google
+                </button>
             </div>
             <div class="flex items-center gap-3 mb-6"><div class="flex-1 h-px bg-brand-border"></div><span class="text-[10px] uppercase text-brand-muted">o con tu correo</span><div class="flex-1 h-px bg-brand-border"></div></div>
             <form id="authForm" class="space-y-3">
@@ -460,14 +445,11 @@
                 <p id="authError" class="hidden text-xs text-red-400"></p>
                 <button type="submit" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition text-sm shadow-lg">Iniciar sesión</button>
             </form>
-            <p class="text-center text-xs text-brand-muted mt-5">
-                <span id="authSwitchText">¿No tienes cuenta?</span>
-                <button type="button" onclick="switchAuthMode()" id="authSwitchBtn" class="text-blue-400 hover:text-blue-300 font-semibold ml-1">Regístrate</button>
-            </p>
+            <p class="text-center text-xs text-brand-muted mt-5"><span id="authSwitchText">¿No tienes cuenta?</span><button type="button" onclick="switchAuthMode()" id="authSwitchBtn" class="text-blue-400 hover:text-blue-300 font-semibold ml-1">Regístrate</button></p>
         </div>
     </div>
 
-    <!-- MODAL DE 2FA -->
+    <!-- MODAL 2FA -->
     <div id="2faModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
             <button onclick="close2FAModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -485,7 +467,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE EDICIÓN DE PERFIL -->
+    <!-- MODAL EDITOR PERFIL -->
     <div id="profileEditorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative mx-4 max-h-[90vh] overflow-y-auto">
             <button onclick="closeProfileEditor()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -511,9 +493,7 @@
                             <div class="w-11 h-6 bg-brand-border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
-                    <button type="button" onclick="changePassword()" id="changePasswordBtn" class="w-full mt-3 bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold py-2 rounded-xl transition">
-                        Cambiar contraseña
-                    </button>
+                    <button type="button" onclick="changePassword()" id="changePasswordBtn" class="w-full mt-3 bg-brand-card border border-brand-border hover:bg-brand-border text-white text-xs font-bold py-2 rounded-xl transition">Cambiar contraseña</button>
                     <p id="passwordHelper" class="text-[10px] text-brand-muted mt-1 hidden"></p>
                 </div>
                 <p id="editProfileError" class="hidden text-xs text-red-400"></p>
@@ -524,7 +504,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE NDA -->
+    <!-- MODAL NDA -->
     <div id="ndaModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center hidden-modal modal-overlay">
         <div class="bg-brand-dark border border-brand-border w-full max-w-md p-8 rounded-3xl shadow-2xl relative">
             <button onclick="closeNdaModal()" class="absolute top-5 right-5 text-brand-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -548,17 +528,14 @@
         </div>
     </div>
 
-    <!-- CHATBOT FLOTANTE -->
+    <!-- CHATBOT -->
     <div class="fixed bottom-6 right-6 z-50">
         <button onclick="toggleChat()" class="bg-blue-600 hover:bg-blue-500 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition hover:scale-105 border border-blue-400/30">
             <i data-lucide="message-square" class="w-6 h-6"></i>
         </button>
         <div id="chat-window" class="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-brand-card border border-brand-border rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[420px]" style="transform: translateY(10px) scale(0.95); opacity: 0;">
             <div class="bg-brand-dark border-b border-brand-border p-4 flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <span class="text-xs font-bold text-white uppercase tracking-wider">Asistente Bniarq</span>
-                </div>
+                <div class="flex items-center gap-3"><div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div><span class="text-xs font-bold text-white uppercase tracking-wider">Asistente Bniarq</span></div>
                 <button onclick="toggleChat()" class="text-brand-muted hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3"></div>

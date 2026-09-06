@@ -27,11 +27,11 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ==========================================
-// CONFIGURACIÓN DE EMAILJS (ACTUALIZADA)
+// CONFIGURACIÓN DE EMAILJS (CORREGIDA)
 // ==========================================
 const EMAILJS_CONFIG = {
     SERVICE_ID: 'service_sbrdv6n',
-    TEMPLATE_ID: 'template_uob4f6p',  // ← ACTUALIZADO
+    TEMPLATE_ID: 'template_6z1gbae',   // ← CORREGIDO
     PUBLIC_KEY: 'hm3t3ODtyq5Exj4Sw'
 };
 
@@ -54,6 +54,76 @@ let twoFATimeout = null;
 let is2FAFlowActive = false;
 
 // ==========================================
+// TOAST SYSTEM
+// ==========================================
+function showToast(message, type = 'success') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const classes = {
+        success: 'toast-success',
+        error: 'toast-error',
+        warning: 'toast-warning',
+        info: 'toast-info'
+    };
+
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${classes[type] || classes.info}`;
+    toast.innerHTML = `<span>${icons[type] || '📌'}</span> ${message}`;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 500);
+    }, 3500);
+}
+
+// ==========================================
+// SKELETON LOADING
+// ==========================================
+function showSkeletons(count = 6) {
+    const grid = document.getElementById('profilesGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        grid.innerHTML += `
+            <div class="bg-brand-card border border-brand-border p-6 rounded-3xl">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="skeleton skeleton-circle w-14 h-14"></div>
+                    <div class="flex-1">
+                        <div class="skeleton skeleton-text w-32 mb-2"></div>
+                        <div class="skeleton skeleton-text-sm w-24"></div>
+                    </div>
+                </div>
+                <div class="skeleton skeleton-text w-full mb-3"></div>
+                <div class="skeleton skeleton-text w-3/4 mb-6"></div>
+                <div class="flex gap-2">
+                    <div class="skeleton skeleton-button"></div>
+                    <div class="skeleton skeleton-button"></div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ==========================================
 // PERFILES DEMO
 // ==========================================
 const demoProfiles = [
@@ -64,7 +134,7 @@ const demoProfiles = [
         software: "Revit / BIM Level 3 / AutoCAD",
         photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
         ownerUid: "demo_elena_aris",
-        ownerEmail: "elena@arisstudio.com",
+        ownerEmail: "elena.aris@bniarq.com",
         experiencia: "15 años",
         proyectos: "120+ proyectos residenciales",
         especialidades: ["Vivienda sostenible", "Urbanismo", "BIM"]
@@ -76,7 +146,7 @@ const demoProfiles = [
         software: "CypeCAD / Tekla / SAP2000",
         photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop",
         ownerUid: "demo_structuralia",
-        ownerEmail: "info@structuralia.com",
+        ownerEmail: "structuralia@bniarq.com",
         experiencia: "20 años",
         proyectos: "300+ proyectos estructurales",
         especialidades: ["Puentes", "Edificios singulares", "Cálculo sísmico"]
@@ -88,7 +158,7 @@ const demoProfiles = [
         software: "EnergyPlus / PHPP / DesignBuilder",
         photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
         ownerUid: "demo_ecobuild",
-        ownerEmail: "contacto@ecobuildlab.com",
+        ownerEmail: "ecobuild@bniarq.com",
         experiencia: "8 años",
         proyectos: "85+ proyectos Passivhaus",
         especialidades: ["Passivhaus", "LEED", "Eficiencia energética"]
@@ -100,7 +170,7 @@ const demoProfiles = [
         software: "Rhino / Grasshopper / QGIS",
         photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop",
         ownerUid: "demo_urbanstudio",
-        ownerEmail: "info@urbanstudio.com",
+        ownerEmail: "urban.studio@bniarq.com",
         experiencia: "10 años",
         proyectos: "65+ proyectos urbanos",
         especialidades: ["Espacio público", "Paisajismo", "Movilidad"]
@@ -112,7 +182,7 @@ const demoProfiles = [
         software: "Revit / Navisworks / Bluebeam",
         photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400&auto=format&fit=crop",
         ownerUid: "demo_tectonica",
-        ownerEmail: "info@tectonica.com",
+        ownerEmail: "tectonica@bniarq.com",
         experiencia: "12 años",
         proyectos: "200+ proyectos constructivos",
         especialidades: ["Construcción", "Dirección de obra", "Control de calidad"]
@@ -124,7 +194,7 @@ const demoProfiles = [
         software: "SketchUp / V-Ray / Photoshop",
         photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
         ownerUid: "demo_aural",
-        ownerEmail: "hola@auralstudio.com",
+        ownerEmail: "aural.studio@bniarq.com",
         experiencia: "7 años",
         proyectos: "150+ proyectos de interiores",
         especialidades: ["Diseño comercial", "Hospitality", "Mobiliario"]
@@ -137,6 +207,8 @@ const demoProfiles = [
 async function loadProfilesFromFirebase() {
     const grid = document.getElementById('profilesGrid');
     if (!grid) return;
+    
+    showSkeletons(6);
 
     try {
         const querySnapshot = await getDocs(collection(db, "perfiles"));
@@ -192,7 +264,6 @@ function renderProfiles(profiles) {
         const card = document.createElement('div');
         card.className = "bg-brand-card border border-brand-border p-6 rounded-3xl flex flex-col justify-between hover:border-blue-500/50 transition duration-300 shadow-xl";
         
-        const isDemo = p.ownerUid && p.ownerUid.startsWith('demo_');
         const isOwner = currentUserProfile && p.ownerUid === currentUserProfile.uid;
         
         let especialidadesHTML = '';
@@ -232,15 +303,9 @@ function renderProfiles(profiles) {
                     <button onclick="openNdaModal('${p.name.replace(/'/g, "\\'")}')" class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition">
                         Enviar NDA
                     </button>
-                    ${isDemo ? `
-                        <button onclick="alert('Este es un perfil de demostración. Regístrate para contactar con profesionales reales.')" class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
-                            <i data-lucide="mail" class="w-3.5 h-3.5"></i> Demo
-                        </button>
-                    ` : `
-                        <button onclick='startConversation(${JSON.stringify({ uid: p.ownerUid || null, name: p.name, photo: p.photo || "" }).replace(/'/g, "&#39;")})' class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
-                            <i data-lucide="mail" class="w-3.5 h-3.5"></i> Mensaje
-                        </button>
-                    `}
+                    <button onclick='startConversation(${JSON.stringify({ uid: p.ownerUid || null, name: p.name, photo: p.photo || "" }).replace(/'/g, "&#39;")})' class="flex-1 bg-brand-dark border border-brand-border hover:bg-blue-600 hover:text-white text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="mail" class="w-3.5 h-3.5"></i> Mensaje
+                    </button>
                 `}
             </div>
         `;
@@ -376,7 +441,7 @@ function initProfileRegistration() {
         e.preventDefault();
 
         if (!auth.currentUser) {
-            alert('Inicia sesión (o crea una cuenta) antes de publicar tu perfil.');
+            showToast('Inicia sesión antes de publicar tu perfil.', 'warning');
             openAuthModal('login');
             return;
         }
@@ -406,12 +471,12 @@ function initProfileRegistration() {
                 form.reset();
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-                alert('¡Perfil guardado y publicado con éxito en la red global!');
+                showToast('¡Perfil guardado y publicado con éxito!', 'success');
                 loadProfilesFromFirebase();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (error) {
                 console.error("Error al guardar en Firebase: ", error);
-                alert("Hubo un error al guardar el perfil en la nube.");
+                showToast('Error al guardar el perfil en la nube.', 'error');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
             }
@@ -502,10 +567,11 @@ async function send2FACodeByEmail(email, name, code) {
         );
         
         console.log('✅ Email 2FA enviado con éxito');
+        showToast(`Código enviado a ${email}`, 'success');
         return true;
     } catch (error) {
         console.error('❌ Error al enviar email 2FA:', error);
-        alert(`🔐 Tu código de verificación es: ${code}\n\n(Revisa tu correo o usa este código)`);
+        showToast(`Código: ${code} (revisa la consola)`, 'warning');
         return false;
     }
 }
@@ -583,7 +649,7 @@ async function start2FAFlow(email, name) {
             }
         } else {
             console.error('❌ Modal 2FA no encontrado en el DOM');
-            alert('⚠️ Error: No se pudo mostrar el modal de verificación.');
+            showToast('Error: No se pudo mostrar el modal de verificación.', 'error');
             resolve(false);
             return;
         }
@@ -596,7 +662,7 @@ async function start2FAFlow(email, name) {
                 pending2FAResolve = null;
             }
             close2FAModal();
-            alert('⏰ El código de verificación ha expirado. Solicita uno nuevo.');
+            showToast('⏰ El código ha expirado. Solicita uno nuevo.', 'warning');
         }, 300000);
     });
 }
@@ -650,7 +716,7 @@ window.verify2FACode = async function(e) {
                 pending2FAResolve = null;
             }
             
-            alert('✅ ¡Verificación 2FA completada con éxito!');
+            showToast('✅ ¡Verificación 2FA completada con éxito!', 'success');
             loadProfilesFromFirebase();
             
         } else {
@@ -1405,7 +1471,7 @@ function initProfileEditor() {
                             twoFAActivatedAt: serverTimestamp()
                         });
                         currentUserProfile.twoFAEnabled = true;
-                        alert('✅ ¡2FA activado correctamente!');
+                        showToast('✅ ¡2FA activado correctamente!', 'success');
                     } else {
                         document.getElementById('edit2FA').checked = false;
                         throw new Error('No se pudo activar 2FA. El código no fue verificado.');
@@ -1417,7 +1483,7 @@ function initProfileEditor() {
                             twoFAEnabled: false
                         });
                         currentUserProfile.twoFAEnabled = false;
-                        alert('✅ 2FA desactivado correctamente.');
+                        showToast('✅ 2FA desactivado correctamente.', 'success');
                     } else {
                         document.getElementById('edit2FA').checked = true;
                         throw new Error('Cancelaste la desactivación de 2FA.');
@@ -1471,7 +1537,7 @@ function initProfileEditor() {
 
 window.openProfileEditor = function() {
     if (!currentUserProfile) {
-        alert('Debes iniciar sesión primero.');
+        showToast('Debes iniciar sesión primero.', 'warning');
         return;
     }
 
@@ -1526,7 +1592,7 @@ window.closeProfileEditor = function() {
 window.changePassword = async function() {
     const user = auth.currentUser;
     if (!user) {
-        alert('No has iniciado sesión.');
+        showToast('No has iniciado sesión.', 'warning');
         return;
     }
 
@@ -1542,10 +1608,10 @@ window.changePassword = async function() {
         if (confirmReset) {
             try {
                 await sendPasswordResetEmail(auth, user.email);
-                alert('✅ Se ha enviado un email de recuperación a:\n\n' + user.email + '\n\nRevisa tu bandeja de entrada (y spam).');
+                showToast(`Email de recuperación enviado a ${user.email}`, 'success');
             } catch (error) {
                 console.error('Error al enviar email de recuperación:', error);
-                alert('❌ Error al enviar el email. Inténtalo de nuevo más tarde.');
+                showToast('Error al enviar el email. Inténtalo de nuevo.', 'error');
             }
         }
         return;
@@ -1556,13 +1622,13 @@ window.changePassword = async function() {
 
     const newPassword = prompt('🔑 Introduce tu nueva contraseña (mín. 6 caracteres):');
     if (!newPassword || newPassword.length < 6) {
-        alert('La contraseña debe tener al menos 6 caracteres.');
+        showToast('La contraseña debe tener al menos 6 caracteres.', 'warning');
         return;
     }
 
     const confirmPassword = prompt('🔑 Confirma tu nueva contraseña:');
     if (newPassword !== confirmPassword) {
-        alert('❌ Las contraseñas no coinciden.');
+        showToast('❌ Las contraseñas no coinciden.', 'error');
         return;
     }
 
@@ -1570,17 +1636,42 @@ window.changePassword = async function() {
         const credential = EmailAuthProvider.credential(user.email, currentPassword);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPassword);
-        alert('✅ ¡Contraseña actualizada con éxito!');
+        showToast('✅ ¡Contraseña actualizada con éxito!', 'success');
     } catch (error) {
         console.error('Error al cambiar contraseña:', error);
         if (error.code === 'auth/wrong-password') {
-            alert('❌ La contraseña actual es incorrecta.');
+            showToast('❌ La contraseña actual es incorrecta.', 'error');
         } else if (error.code === 'auth/too-many-requests') {
-            alert('❌ Demasiados intentos. Espera un momento.');
+            showToast('❌ Demasiados intentos. Espera un momento.', 'warning');
         } else {
-            alert('❌ Error al cambiar la contraseña: ' + translateAuthError(error.code));
+            showToast('Error al cambiar la contraseña: ' + translateAuthError(error.code), 'error');
         }
     }
+};
+
+// ==========================================
+// FILTRADO DE PERFILES (CON FILTROS AVANZADOS)
+// ==========================================
+window.filterProfiles = function() {
+    const queryElement = document.getElementById('searchInput');
+    const specialtyElement = document.getElementById('filterSpecialty');
+    const locationElement = document.getElementById('filterLocation');
+    
+    const query = queryElement?.value?.toLowerCase() || '';
+    const specialty = specialtyElement?.value || '';
+    const location = locationElement?.value || '';
+    
+    const filtered = allProfilesCache.filter(p => {
+        const matchSearch = p.name.toLowerCase().includes(query) || 
+                           p.role.toLowerCase().includes(query) ||
+                           p.location.toLowerCase().includes(query) ||
+                           p.software.toLowerCase().includes(query);
+        const matchSpecialty = !specialty || p.role.includes(specialty) || 
+                              (p.especialidades && p.especialidades.some(e => e.includes(specialty)));
+        const matchLocation = !location || p.location.includes(location);
+        return matchSearch && matchSpecialty && matchLocation;
+    });
+    renderProfiles(filtered);
 };
 
 // ==========================================
@@ -1592,16 +1683,16 @@ function conversationIdFor(uidA, uidB) {
 
 window.startConversation = async function(peer) {
     if (!auth.currentUser) {
-        alert('Inicia sesión para poder enviar mensajes.');
+        showToast('Inicia sesión para poder enviar mensajes.', 'warning');
         openAuthModal('login');
         return;
     }
     if (!peer.uid) {
-        alert('Este perfil no puede recibir mensajes.');
+        showToast('Este perfil no puede recibir mensajes.', 'warning');
         return;
     }
     if (peer.uid === auth.currentUser.uid) {
-        alert('No puedes enviarte un mensaje a ti mismo.');
+        showToast('No puedes enviarte un mensaje a ti mismo.', 'warning');
         return;
     }
 
@@ -1711,7 +1802,7 @@ function openThread(convId, peer) {
 
     if (!inboxListView || !threadView || !threadPeerName || !threadMessages) {
         console.error('Elementos de mensajería no encontrados');
-        alert('La ventana de mensajería no está disponible.');
+        showToast('La ventana de mensajería no está disponible.', 'error');
         return;
     }
 
@@ -1794,23 +1885,6 @@ window.sendThreadMessage = async function() {
         });
     } catch (error) {
         console.error('Error al enviar el mensaje:', error);
-        alert('No se pudo enviar el mensaje.');
+        showToast('No se pudo enviar el mensaje.', 'error');
     }
-};
-
-// ==========================================
-// FILTRADO DE PERFILES
-// ==========================================
-window.filterProfiles = function() {
-    const queryElement = document.getElementById('searchInput');
-    if (!queryElement) return;
-    const query = queryElement.value.toLowerCase();
-    
-    const filtered = allProfilesCache.filter(p => 
-        p.name.toLowerCase().includes(query) || 
-        p.role.toLowerCase().includes(query) || 
-        p.location.toLowerCase().includes(query) ||
-        p.software.toLowerCase().includes(query)
-    );
-    renderProfiles(filtered);
 };

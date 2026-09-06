@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bniarq | Panel de Administración</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%232563eb'/><text x='50' y='68' font-family='sans-serif' font-size='55' font-weight='bold' fill='white' text-anchor='middle'>B</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#030303',
+                            card: '#0a0a0a',
+                            border: '#1f1f1f',
+                            muted: '#a1a1aa'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #030303; color: #ffffff; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #030303; }
+        ::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2563EB; }
+
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: 100%;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 14px;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.hide { transform: translateX(120%); opacity: 0; }
+        .toast-success { background: #0a2e1a; border-color: #22c55e; }
+        .toast-error { background: #2e0a0a; border-color: #ef4444; }
+        .toast-warning { background: #2e1a0a; border-color: #f59e0b; }
+        .toast-info { background: #0a1a2e; border-color: #3b82f6; }
+
+        .admin-user-card {
+            background: #0a0a0a;
+            border: 1px solid #1f1f1f;
+            border-radius: 16px;
+            padding: 16px 20px;
+            transition: all 0.3s ease;
+        }
+        .admin-user-card:hover {
+            border-color: #2563eb;
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.05);
+        }
+        .role-badge {
+            font-size: 9px;
+            padding: 2px 10px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .role-badge.user { background: #1a1a1a; color: #a1a1aa; border: 1px solid #2a2a2a; }
+        .role-badge.worker { background: #0a2e1a; color: #22c55e; border: 1px solid #22c55e; }
+        .role-badge.admin { background: #0a1a2e; color: #3b82f6; border: 1px solid #3b82f6; }
+
+        .btn-promote {
+            background: #0a2e1a;
+            color: #22c55e;
+            border: 1px solid #22c55e;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-promote:hover {
+            background: #22c55e;
+            color: #000;
+        }
+        .btn-demote {
+            background: #2e0a0a;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-demote:hover {
+            background: #ef4444;
+            color: #000;
+        }
+        .btn-danger {
+            background: #2e0a0a;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background: #ef4444;
+            color: #000;
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-white">
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- HEADER -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-brand-dark/90 backdrop-blur-md border-b border-brand-border py-4 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold text-white">bniarq<span class="text-blue-500">.</span></span>
+            <span class="text-[10px] bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded-full">ADMIN</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="adminStatus" class="text-xs text-emerald-400">🟢 Conectado</span>
+            <a href="index.html" class="text-xs text-brand-muted hover:text-white transition">Volver</a>
+            <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300 transition">Cerrar sesión</button>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold">⚙️ Panel de Administración</h1>
+                <p class="text-sm text-brand-muted">Gestiona los usuarios y sus roles en la plataforma.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-brand-muted">Total usuarios: <span id="totalUsers">0</span></span>
+                <span class="text-xs text-brand-muted">|</span>
+                <span class="text-xs text-brand-muted">Trabajadores: <span id="totalWorkers">0</span></span>
+            </div>
+        </div>
+
+        <!-- Formulario para crear trabajador -->
+        <div class="bg-brand-card border border-brand-border rounded-2xl p-6 mb-8">
+            <h2 class="text-sm font-bold text-brand-muted uppercase tracking-wider mb-4">➕ Crear nuevo trabajador</h2>
+            <form id="createWorkerForm" class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-brand-muted mb-1">Email del usuario</label>
+                    <input type="email" id="workerEmail" required placeholder="email@ejemplo.com" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500 outline-none">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-brand-muted mb-1">Nombre completo</label>
+                    <input type="text" id="workerName" required placeholder="Nombre del trabajador" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500 outline-none">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-brand-muted mb-1">Especialidades</label>
+                    <input type="text" id="workerSpecialties" placeholder="publicacion, mensajeria, cuenta" class="w-full bg-brand-dark border border-brand-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-blue-500 outline-none">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition whitespace-nowrap">
+                        Crear trabajador
+                    </button>
+                </div>
+            </form>
+            <p class="text-[10px] text-brand-muted mt-2">⚠️ El usuario debe estar registrado en la plataforma primero. Se le asignará el rol de "worker".</p>
+        </div>
+
+        <!-- Lista de usuarios -->
+        <div>
+            <h2 class="text-sm font-bold text-brand-muted uppercase tracking-wider mb-4">👥 Todos los usuarios</h2>
+            <div id="usersList" class="space-y-3">
+                <p class="text-sm text-brand-muted">Cargando usuarios...</p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

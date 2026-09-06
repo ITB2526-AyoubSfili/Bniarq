@@ -1,8 +1,8 @@
 // Importar funciones de Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
-    getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, updateDoc,
-    query, where, orderBy, onSnapshot, serverTimestamp
+    getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, updateDoc, getDocs as getDocs2,
+    query, where, orderBy, onSnapshot, serverTimestamp, limit
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut,
@@ -27,11 +27,11 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ==========================================
-// CONFIGURACIÓN DE EMAILJS (CORREGIDA)
+// CONFIGURACIÓN DE EMAILJS
 // ==========================================
 const EMAILJS_CONFIG = {
     SERVICE_ID: 'service_sbrdv6n',
-    TEMPLATE_ID: 'template_6z1gbae',   // ← CORREGIDO
+    TEMPLATE_ID: 'template_6z1gbae',
     PUBLIC_KEY: 'hm3t3ODtyq5Exj4Sw'
 };
 
@@ -52,6 +52,10 @@ let pending2FATimestamp = null;
 let pending2FAResolve = null;
 let twoFATimeout = null;
 let is2FAFlowActive = false;
+
+// Variables notificaciones
+let unreadCount = 0;
+let newMsgToastTimeout = null;
 
 // ==========================================
 // TOAST SYSTEM
@@ -124,6 +128,69 @@ function showSkeletons(count = 6) {
 }
 
 // ==========================================
+// NOTIFICACIONES DE MENSAJES
+// ==========================================
+
+function updateUnreadBadge(count) {
+    const badge = document.getElementById('unreadBadge');
+    if (!badge) return;
+    
+    unreadCount = count;
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.classList.add('show');
+    } else {
+        badge.classList.remove('show');
+    }
+}
+
+function showNewMessageNotification(senderName, messagePreview) {
+    const toast = document.getElementById('newMsgToast');
+    const senderEl = document.getElementById('msgSender');
+    const previewEl = document.getElementById('msgPreview');
+    
+    if (!toast || !senderEl || !previewEl) return;
+    
+    if (newMsgToastTimeout) {
+        clearTimeout(newMsgToastTimeout);
+        toast.classList.remove('show');
+    }
+    
+    senderEl.textContent = `📨 ${senderName}`;
+    previewEl.textContent = messagePreview.length > 50 ? messagePreview.substring(0, 50) + '...' : messagePreview;
+    
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    newMsgToastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 5000);
+}
+
+function playNotificationSound() {
+    try {
+        const audio = new Audio('data:audio/wav;base64,UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVoAAACAgICAf39/f39/f39/f4CAgICAgICAgICAf39/f39/f39/f4CAgICAgICAgICAf39/f39/f39/f4CAgICAf39/f39/f38=');
+        audio.volume = 0.3;
+        audio.play().catch(() => {});
+    } catch (e) {}
+}
+
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+function sendBrowserNotification(title, body) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+            body: body,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%232563eb"/><text x="50" y="68" font-family="sans-serif" font-size="55" font-weight="bold" fill="white" text-anchor="middle">B</text></svg>',
+            silent: true
+        });
+    }
+}
+
+// ==========================================
 // PERFILES DEMO
 // ==========================================
 const demoProfiles = [
@@ -133,7 +200,7 @@ const demoProfiles = [
         location: "Madrid, España", 
         software: "Revit / BIM Level 3 / AutoCAD",
         photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
-        ownerUid: "demo_elena_aris",
+        ownerUid: "elena_aris_uid",
         ownerEmail: "elena.aris@bniarq.com",
         experiencia: "15 años",
         proyectos: "120+ proyectos residenciales",
@@ -145,7 +212,7 @@ const demoProfiles = [
         location: "Valencia, España", 
         software: "CypeCAD / Tekla / SAP2000",
         photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop",
-        ownerUid: "demo_structuralia",
+        ownerUid: "structuralia_uid",
         ownerEmail: "structuralia@bniarq.com",
         experiencia: "20 años",
         proyectos: "300+ proyectos estructurales",
@@ -157,7 +224,7 @@ const demoProfiles = [
         location: "Barcelona, España", 
         software: "EnergyPlus / PHPP / DesignBuilder",
         photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
-        ownerUid: "demo_ecobuild",
+        ownerUid: "ecobuild_uid",
         ownerEmail: "ecobuild@bniarq.com",
         experiencia: "8 años",
         proyectos: "85+ proyectos Passivhaus",
@@ -169,7 +236,7 @@ const demoProfiles = [
         location: "Barcelona, España", 
         software: "Rhino / Grasshopper / QGIS",
         photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop",
-        ownerUid: "demo_urbanstudio",
+        ownerUid: "urbanstudio_uid",
         ownerEmail: "urban.studio@bniarq.com",
         experiencia: "10 años",
         proyectos: "65+ proyectos urbanos",
@@ -181,7 +248,7 @@ const demoProfiles = [
         location: "México DF, México", 
         software: "Revit / Navisworks / Bluebeam",
         photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400&auto=format&fit=crop",
-        ownerUid: "demo_tectonica",
+        ownerUid: "tectonica_uid",
         ownerEmail: "tectonica@bniarq.com",
         experiencia: "12 años",
         proyectos: "200+ proyectos constructivos",
@@ -193,7 +260,7 @@ const demoProfiles = [
         location: "Buenos Aires, Argentina", 
         software: "SketchUp / V-Ray / Photoshop",
         photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
-        ownerUid: "demo_aural",
+        ownerUid: "aural_uid",
         ownerEmail: "aural.studio@bniarq.com",
         experiencia: "7 años",
         proyectos: "150+ proyectos de interiores",
@@ -495,9 +562,7 @@ function initProfileRegistration() {
 // ==========================================
 // NDA MODAL
 // ==========================================
-function initNdaModal() {
-    // Ya está en el HTML
-}
+function initNdaModal() {}
 
 window.openNdaModal = function(studioName) {
     const target = document.getElementById('targetStudioName');
@@ -805,7 +870,7 @@ function init2FA() {
 }
 
 // ==========================================
-// CHATBOT CON BOTONES INTERACTIVOS
+// CHATBOT
 // ==========================================
 let chatOpenFirstTime = true;
 let chatStep = 0;
@@ -1411,7 +1476,7 @@ document.addEventListener('click', (e) => {
 });
 
 // ==========================================
-// EDITOR DE PERFIL CON 2FA COMPLETO
+// EDITOR DE PERFIL
 // ==========================================
 function initProfileEditor() {
     const form = document.getElementById('profileEditorForm');
@@ -1458,9 +1523,6 @@ function initProfileEditor() {
                 await updateProfile(user, { displayName: `${name} ${apellido}` });
             }
 
-            // ==========================================
-            // FLUJO COMPLETO DE 2FA
-            // ==========================================
             const current2FA = currentUserProfile?.twoFAEnabled || false;
             if (twoFAEnabled !== current2FA) {
                 if (twoFAEnabled) {
@@ -1587,7 +1649,7 @@ window.closeProfileEditor = function() {
 };
 
 // ==========================================
-// CAMBIAR CONTRASEÑA (CON DETECCIÓN DE PROVEEDOR)
+// CAMBIAR CONTRASEÑA
 // ==========================================
 window.changePassword = async function() {
     const user = auth.currentUser;
@@ -1650,7 +1712,7 @@ window.changePassword = async function() {
 };
 
 // ==========================================
-// FILTRADO DE PERFILES (CON FILTROS AVANZADOS)
+// FILTRADO DE PERFILES
 // ==========================================
 window.filterProfiles = function() {
     const queryElement = document.getElementById('searchInput');
@@ -1675,7 +1737,7 @@ window.filterProfiles = function() {
 };
 
 // ==========================================
-// MENSAJERÍA
+// MENSAJERÍA (CON NOTIFICACIONES)
 // ==========================================
 function conversationIdFor(uidA, uidB) {
     return [uidA, uidB].sort().join('_');
@@ -1738,6 +1800,8 @@ window.toggleInbox = function() {
 function watchConversations() {
     if (conversationsUnsub) conversationsUnsub();
     
+    requestNotificationPermission();
+    
     const q = query(
         collection(db, 'conversations'),
         where('participants', 'array-contains', auth.currentUser.uid)
@@ -1745,9 +1809,41 @@ function watchConversations() {
     
     conversationsUnsub = onSnapshot(q, (snapshot) => {
         const docs = [];
+        let unread = 0;
+        let newMessage = null;
+        
         snapshot.forEach(doc => {
-            docs.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            docs.push({ id: doc.id, ...data });
+            
+            if (data.lastMessage && data.lastMessageBy !== auth.currentUser.uid) {
+                const lastMsgId = data.lastMessageId || '';
+                if (lastMsgId !== localStorage.getItem(`read_${doc.id}`)) {
+                    unread++;
+                    if (!newMessage || data.lastMessageAt?.toMillis?.() > newMessage.time) {
+                        const peerUid = data.participants.find(uid => uid !== auth.currentUser.uid);
+                        const peerInfo = data.participantsInfo ? data.participantsInfo[peerUid] : null;
+                        newMessage = {
+                            sender: peerInfo ? peerInfo.name : 'Usuario',
+                            preview: data.lastMessage,
+                            time: data.lastMessageAt?.toMillis?.() || 0
+                        };
+                    }
+                }
+            }
         });
+        
+        updateUnreadBadge(unread);
+        
+        if (newMessage && unread > 0) {
+            showNewMessageNotification(newMessage.sender, newMessage.preview);
+            playNotificationSound();
+            sendBrowserNotification(
+                `📨 Nuevo mensaje de ${newMessage.sender}`,
+                newMessage.preview
+            );
+        }
+        
         docs.sort((a, b) => {
             const aTime = a.lastMessageAt?.toMillis?.() || 0;
             const bTime = b.lastMessageAt?.toMillis?.() || 0;
@@ -1819,6 +1915,20 @@ function openThread(convId, peer) {
     }, (error) => {
         console.error('Error escuchando mensajes:', error);
     });
+    
+    // Marcar como leído al abrir
+    const qMsg = query(
+        collection(db, 'conversations', convId, 'messages'),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+    );
+    getDocs2(qMsg).then((snapshot) => {
+        if (!snapshot.empty) {
+            const lastMsg = snapshot.docs[0];
+            localStorage.setItem(`read_${convId}`, lastMsg.id);
+            updateUnreadBadge(0);
+        }
+    }).catch(() => {});
 }
 
 function renderThreadMessages(snapshot) {
@@ -1874,15 +1984,21 @@ window.sendThreadMessage = async function() {
     input.value = '';
 
     try {
-        await addDoc(collection(db, 'conversations', activeConversationId, 'messages'), {
+        const msgRef = await addDoc(collection(db, 'conversations', activeConversationId, 'messages'), {
             senderId: auth.currentUser.uid,
             text: text,
             createdAt: serverTimestamp()
         });
+        
         await updateDoc(doc(db, 'conversations', activeConversationId), {
             lastMessage: text,
-            lastMessageAt: serverTimestamp()
+            lastMessageAt: serverTimestamp(),
+            lastMessageBy: auth.currentUser.uid,
+            lastMessageId: msgRef.id
         });
+        
+        localStorage.setItem(`read_${activeConversationId}`, msgRef.id);
+        
     } catch (error) {
         console.error('Error al enviar el mensaje:', error);
         showToast('No se pudo enviar el mensaje.', 'error');

@@ -49,9 +49,73 @@
         .hidden-modal { display: none !important; }
         .flex-center { display: flex; align-items: center; justify-content: center; }
         #chat-window, #inbox-window { transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+        .skeleton-circle { border-radius: 50%; }
+        .skeleton-text { height: 12px; border-radius: 6px; }
+        .skeleton-text-sm { height: 10px; border-radius: 5px; width: 60%; }
+        .skeleton-button { height: 36px; border-radius: 12px; width: 45%; }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Toast Container */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: 100%;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 14px;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .toast.hide {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+        .toast-success { background: #0a2e1a; border-color: #22c55e; }
+        .toast-error { background: #2e0a0a; border-color: #ef4444; }
+        .toast-warning { background: #2e1a0a; border-color: #f59e0b; }
+        .toast-info { background: #0a1a2e; border-color: #3b82f6; }
+
+        @media (max-width: 480px) {
+            #toast-container { max-width: 90vw; right: 5vw; top: 10px; }
+            .toast { font-size: 0.8rem; padding: 12px 16px; }
+        }
     </style>
 </head>
 <body class="bg-brand-dark text-white selection:bg-blue-600 selection:text-white antialiased">
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
 
     <!-- HEADER / NAVBAR -->
     <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-4 px-6 md:px-12 flex items-center justify-between border-b border-transparent">
